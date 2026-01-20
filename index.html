@@ -5,32 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PG Live Diary</title>
   <style>
-    :root { --primary: #e60012; --bg: #f4f4f4; }
-    body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
+    :root { --primary: #e60012; --bg: #f4f4f4; --text: #333; }
+    body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; color: var(--text); }
     header { background: #333; color: white; padding: 15px; text-align: center; }
     .tab-content { display: none; padding: 15px; max-width: 600px; margin: auto; }
     .tab-content.active { display: block; }
     
+    /* 年セクション */
+    .year-section { margin-top: 25px; border-left: 4px solid var(--primary); padding-left: 10px; }
+    .year-label { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; color: #555; }
+
     /* ツアー別グループ */
-    .tour-group { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
-    .tour-header { background: #eee; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
-    .tour-body { background: white; display: none; padding: 10px; }
+    .tour-group { margin-bottom: 8px; background: white; border-radius: 8px; border: 1px solid #ddd; overflow: hidden; }
+    .tour-header { background: #fff; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+    .tour-body { display: none; background: #fafafa; }
     .tour-body.open { display: block; }
 
-    /* カードUI */
-    .card { border-bottom: 1px solid #eee; padding: 10px 0; }
+    /* ライブ項目（コンパクト） */
+    .card { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
     .card:last-child { border-bottom: none; }
-    .btn { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
-    .btn-add { background: var(--primary); color: white; }
-    .btn-del { background: #666; color: white; }
-    .btn-edit { background: #007bff; color: white; margin-top: 10px; }
+    .live-info { font-size: 0.9em; }
+    .live-date { color: #888; font-size: 0.8em; margin-right: 5px; }
+
+    /* 小さいボタン */
+    .btn-mini { border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.8em; font-weight: bold; transition: 0.2s; }
+    .btn-add { background: #eee; color: #666; }
+    .btn-del { background: var(--primary); color: white; }
+    .btn-edit { background: #007bff; color: white; width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; }
     
-    /* 下部ナビゲーション */
+    /* ナビゲーション・モーダルは前回同様 */
     nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #ddd; z-index: 100; }
     nav button { flex: 1; padding: 15px; border: none; background: none; font-size: 12px; }
     nav button.active { color: var(--primary); font-weight: bold; }
-
-    /* モーダル */
     #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 1000; overflow-y: auto; }
     .modal-content { background: white; margin: 20px auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
     .song-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
@@ -38,10 +44,9 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
-  <h3>ライブを探して登録</h3>
   <div id="master-live-list">読み込み中...</div>
 </div>
 
@@ -57,19 +62,19 @@
 
 <div id="tab-settings" class="tab-content">
   <h3>設定</h3>
-  <button class="btn" onclick="exportBackup()">📥 バックアップ保存</button>
+  <button class="btn-edit" onclick="exportBackup()" style="background:#666;">📥 バックアップ保存</button>
   <p>リストア：<input type="file" onchange="importBackup(this)"></p>
 </div>
 
 <div id="edit-modal">
   <div class="modal-content">
-    <h3 id="modal-title">セトリ登録</h3>
-    <div id="current-setlist" style="margin-bottom: 20px;"></div>
+    <h3 id="modal-title"></h3>
+    <div id="current-setlist"></div>
     <hr>
     <h4>曲を追加</h4>
     <input type="text" id="song-search" placeholder="曲名を検索..." oninput="searchSongs(this.value)" style="width:100%; padding:10px; box-sizing:border-box;">
-    <div id="search-results" style="max-height: 200px; overflow-y: auto; margin-top:10px;"></div>
-    <button class="btn" onclick="closeModal()" style="background:#333; color:white; margin-top:20px;">閉じる</button>
+    <div id="search-results" style="max-height: 200px; overflow-y: auto;"></div>
+    <button class="btn-mini" onclick="closeModal()" style="background:#333; color:white; width:100%; padding:10px; margin-top:20px;">閉じる</button>
   </div>
 </div>
 
@@ -92,13 +97,12 @@
         fetch('lives.json').then(r => r.json()),
         fetch('songs_master.json').then(r => r.json())
       ]);
-      masterLives = resLives;
+      // 日付降順にソート
+      masterLives = resLives.sort((a, b) => new Date(b.date) - new Date(a.date));
       masterSongs = resSongs;
       loadUserData();
       renderAll();
-    } catch (e) {
-      document.getElementById('master-live-list').innerHTML = "データの読み込みに失敗しました。";
-    }
+    } catch (e) { console.error(e); }
   }
 
   function loadUserData() {
@@ -111,47 +115,58 @@
     renderAll();
   }
 
-  function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('#bottom-nav button').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    document.getElementById('nav-' + tabId).classList.add('active');
-  }
-
   function renderAll() {
     renderMasterList();
     renderMyHistory();
     renderMyStats();
   }
 
-  // --- ツアー別表示 ---
+  // --- 年別・ツアー別表示 ---
   function renderMasterList() {
     const container = document.getElementById('master-live-list');
-    const groups = {};
+    const years = {};
+
     masterLives.forEach(l => {
-      if (!groups[l.title]) groups[l.title] = [];
-      groups[l.title].push(l);
+      const year = l.date.substring(0, 4);
+      if (!years[year]) years[year] = {};
+      if (!years[year][l.title]) years[year][l.title] = [];
+      years[year][l.title].push(l);
     });
 
-    container.innerHTML = Object.keys(groups).map(title => `
-      <div class="tour-group">
-        <div class="tour-header" onclick="this.nextElementSibling.classList.toggle('open')">
-          ${title} <span>▼</span>
-        </div>
-        <div class="tour-body">
-          ${groups[title].map(live => {
-            const isAttended = userData.attendedIds.includes(live.id);
-            return `
-              <div class="card">
-                <small>${live.date}</small> <b>${live.venue}</b>
-                <button class="btn ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${live.id}')">
-                  ${isAttended ? '取消' : '参戦登録'}
-                </button>
-              </div>`;
-          }).join('')}
-        </div>
+    const sortedYears = Object.keys(years).sort((a, b) => b - a);
+
+    container.innerHTML = sortedYears.map(year => `
+      <div class="year-section">
+        <div class="year-label">${year}年</div>
+        ${Object.keys(years[year]).map(title => `
+          <div class="tour-group">
+            <div class="tour-header" onclick="toggleTour(this)">
+              <span>${title}</span>
+              <span style="font-size:0.7em; color:#999;">▼</span>
+            </div>
+            <div class="tour-body">
+              ${years[year][title].map(live => {
+                const isAttended = userData.attendedIds.includes(live.id);
+                return `
+                  <div class="card">
+                    <div class="live-info">
+                      <span class="live-date">${live.date.substring(5).replace('-', '/')}</span>
+                      <span>${live.venue}</span>
+                    </div>
+                    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${live.id}')">
+                      ${isAttended ? '✅' : '＋'}
+                    </button>
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
       </div>
     `).join('');
+  }
+
+  function toggleTour(header) {
+    header.nextElementSibling.classList.toggle('open');
   }
 
   function toggleAttend(id) {
@@ -161,19 +176,21 @@
       userData.attendedIds.push(id);
     }
     saveUserData();
+    event.stopPropagation(); // アコーディオン開閉を防ぐ
   }
 
-  // --- 履歴表示 ---
+  // --- 履歴・編集・統計は前回と同様のロジック ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
-    
     container.innerHTML = myLives.map(l => `
-      <div class="card" style="border:1px solid #ddd; padding:15px; border-radius:10px; margin-bottom:15px;">
-        <b>${l.date}</b><br>${l.title}<br><small>${l.venue}</small>
-        <button class="btn btn-edit" onclick="openEditModal('${l.id}')">🎵 セットリストを編集</button>
-        <div style="margin-top:10px; font-size:0.85em; color:#444;">
-          ${(userData.customSetlists[l.id] || []).map((s, i) => `<div>${i+1}. ${getSongTitle(s)}</div>`).join('')}
+      <div class="card" style="display:block; border:1px solid #ddd; padding:15px; border-radius:10px; margin-bottom:15px; background:white;">
+        <div style="font-size:0.8em; color:#888;">${l.date}</div>
+        <div style="font-weight:bold; margin-bottom:5px;">${l.title}</div>
+        <div style="font-size:0.9em;">${l.venue}</div>
+        <button class="btn-edit" onclick="openEditModal('${l.id}')">🎵 セットリストを編集</button>
+        <div style="margin-top:10px; font-size:0.85em; color:#666; line-height:1.4;">
+          ${(userData.customSetlists[l.id] || []).map((s, i) => `${i+1}. ${getSongTitle(s)} `).join('')}
         </div>
       </div>
     `).join('');
@@ -184,11 +201,10 @@
     return s ? s.title : "不明な曲";
   }
 
-  // --- セトリ編集モーダル ---
   function openEditModal(liveId) {
     editingLiveId = liveId;
     const live = masterLives.find(l => l.id == liveId);
-    document.getElementById('modal-title').textContent = live.date + " セットリスト";
+    document.getElementById('modal-title').textContent = live.date + " セトリ";
     renderCurrentSetlist();
     document.getElementById('edit-modal').style.display = 'block';
   }
@@ -200,7 +216,7 @@
         <span>${index+1}. ${getSongTitle(songId)}</span>
         <button onclick="removeSong(${index})" style="color:red; border:none; background:none;">削除</button>
       </div>
-    `).join('') || "曲が登録されていません。";
+    `).join('') || "未登録";
   }
 
   function searchSongs(query) {
@@ -209,7 +225,7 @@
     const filtered = masterSongs.filter(s => s.title.includes(query)).slice(0, 10);
     results.innerHTML = filtered.map(s => `
       <div class="song-item" onclick="addSong('${s.id}')" style="cursor:pointer; background:#f9f9f9; margin-top:2px;">
-        <span>${s.title}</span> <span style="color:blue;">＋追加</span>
+        <span>${s.title}</span> <span style="color:blue;">＋</span>
       </div>
     `).join('');
   }
@@ -229,7 +245,13 @@
 
   function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
-  // --- 統計 ---
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#bottom-nav button').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('nav-' + tabId).classList.add('active');
+  }
+
   function renderMyStats() {
     const counts = {};
     Object.values(userData.customSetlists).forEach(list => {
@@ -237,10 +259,9 @@
     });
     const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
     document.getElementById('my-stats-area').innerHTML = "<h4>My演奏回数ランキング</h4>" + 
-      (sorted.map(([id, count]) => `<div>${getSongTitle(id)} : ${count}回</div>`).join('') || "セトリを登録すると集計されます。");
+      (sorted.map(([id, count]) => `<div>${getSongTitle(id)} : ${count}回</div>`).join('') || "履歴からセトリを入力してください。");
   }
 
-  // バックアップ・リストアは前回同様
   function exportBackup() {
     const blob = new Blob([JSON.stringify(userData)], {type: 'application/json'});
     const a = document.createElement('a');
@@ -250,7 +271,7 @@
   }
   function importBackup(input) {
     const reader = new FileReader();
-    reader.onload = () => { userData = JSON.parse(reader.result); saveUserData(); alert("復元しました"); };
+    reader.onload = () => { userData = JSON.parse(reader.result); saveUserData(); alert("復元完了"); };
     reader.readAsText(input.files[0]);
   }
 
