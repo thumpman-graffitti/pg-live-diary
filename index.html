@@ -6,31 +6,39 @@
   <title>PG Live Diary</title>
   <style>
     :root { --primary: #e60012; --bg: #f4f4f4; }
-    body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 60px; }
+    body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
     header { background: #333; color: white; padding: 15px; text-align: center; }
     .tab-content { display: none; padding: 15px; max-width: 600px; margin: auto; }
     .tab-content.active { display: block; }
     
+    /* ツアー別グループ */
+    .tour-group { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .tour-header { background: #eee; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
+    .tour-body { background: white; display: none; padding: 10px; }
+    .tour-body.open { display: block; }
+
     /* カードUI */
-    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .card { border-bottom: 1px solid #eee; padding: 10px 0; }
+    .card:last-child { border-bottom: none; }
     .btn { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
     .btn-add { background: var(--primary); color: white; }
     .btn-del { background: #666; color: white; }
+    .btn-edit { background: #007bff; color: white; margin-top: 10px; }
     
     /* 下部ナビゲーション */
-    nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #ddd; }
+    nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #ddd; z-index: 100; }
     nav button { flex: 1; padding: 15px; border: none; background: none; font-size: 12px; }
     nav button.active { color: var(--primary); font-weight: bold; }
 
-    /* 広告スペースのプレースホルダー */
-    .ad-space { background: #ddd; text-align: center; padding: 10px; font-size: 10px; color: #999; margin: 10px 0; }
+    /* モーダル */
+    #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 1000; overflow-y: auto; }
+    .modal-content { background: white; margin: 20px auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
+    .song-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
   </style>
 </head>
 <body>
 
 <header><h1>🎸 PG Live Diary2</h1></header>
-
-<div class="ad-space">ADVERTISEMENT</div>
 
 <div id="tab-search" class="tab-content active">
   <h3>ライブを探して登録</h3>
@@ -44,61 +52,55 @@
 
 <div id="tab-stats" class="tab-content">
   <h3>マイ統計</h3>
-  <div id="my-stats-area">参戦ログを登録すると集計されます。</div>
+  <div id="my-stats-area"></div>
 </div>
 
 <div id="tab-settings" class="tab-content">
-  <h3>設定・バックアップ</h3>
-  <button class="btn" onclick="exportBackup()">📥 バックアップ(JSON保存)</button>
+  <h3>設定</h3>
+  <button class="btn" onclick="exportBackup()">📥 バックアップ保存</button>
   <p>リストア：<input type="file" onchange="importBackup(this)"></p>
-  <hr>
-  <button class="btn btn-del" onclick="clearAllData()">⚠️ 全データ削除</button>
+</div>
+
+<div id="edit-modal">
+  <div class="modal-content">
+    <h3 id="modal-title">セトリ登録</h3>
+    <div id="current-setlist" style="margin-bottom: 20px;"></div>
+    <hr>
+    <h4>曲を追加</h4>
+    <input type="text" id="song-search" placeholder="曲名を検索..." oninput="searchSongs(this.value)" style="width:100%; padding:10px; box-sizing:border-box;">
+    <div id="search-results" style="max-height: 200px; overflow-y: auto; margin-top:10px;"></div>
+    <button class="btn" onclick="closeModal()" style="background:#333; color:white; margin-top:20px;">閉じる</button>
+  </div>
 </div>
 
 <nav id="bottom-nav">
-  <button onclick="showTab('search')" class="active">探す</button>
-  <button onclick="showTab('my-log')">履歴</button>
-  <button onclick="showTab('stats')">統計</button>
-  <button onclick="showTab('settings')">設定</button>
+  <button onclick="showTab('search')" id="nav-search" class="active">探す</button>
+  <button onclick="showTab('my-log')" id="nav-my-log">履歴</button>
+  <button onclick="showTab('stats')" id="nav-stats">統計</button>
+  <button onclick="showTab('settings')" id="nav-settings">設定</button>
 </nav>
 
 <script>
   let masterLives = [];
   let masterSongs = [];
-  let masterSetlists = [];
-  let userData = {
-    attendedIds: [], // 参戦したライブIDのリスト
-    customSetlists: {} // 独自に編集したセトリがあれば保存
-  };
+  let userData = { attendedIds: [], customSetlists: {} };
+  let editingLiveId = null;
 
   async function init() {
     try {
-      // データの読み込み（setlists.json の読み込みを削除しました）
       const [resLives, resSongs] = await Promise.all([
-        fetch('lives.json').then(r => { if(!r.ok) throw new Error(); return r.json(); }),
-        fetch('songs_master.json').then(r => { if(!r.ok) throw new Error(); return r.json(); })
+        fetch('lives.json').then(r => r.json()),
+        fetch('songs_master.json').then(r => r.json())
       ]);
-
       masterLives = resLives;
       masterSongs = resSongs;
-      masterSetlists = []; // 空の配列として初期化
-      
       loadUserData();
       renderAll();
-      
-      // 読み込み中表示を消す（もしあれば）
-      document.getElementById('master-live-list').innerHTML = ""; 
-      renderMasterList(); 
-      
     } catch (e) {
-      console.error("Data Load Error:", e);
-      document.getElementById('master-live-list').innerHTML = 
-        `<p style="color:red;">JSONファイルの読み込みに失敗しました。ファイルがリポジトリにあるか確認してください。</p>`;
+      document.getElementById('master-live-list').innerHTML = "データの読み込みに失敗しました。";
     }
   }
 
-
-  // --- ローカルストレージ管理 ---
   function loadUserData() {
     const saved = localStorage.getItem('pg_user_diary');
     if (saved) userData = JSON.parse(saved);
@@ -109,36 +111,47 @@
     renderAll();
   }
 
-  // --- タブ切り替え ---
   function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('#bottom-nav button').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
-    // クリックしたボタンをアクティブに（簡易実装）
-    event.currentTarget.classList.add('active');
+    document.getElementById('nav-' + tabId).classList.add('active');
   }
 
-  // --- メイン描画 ---
   function renderAll() {
     renderMasterList();
     renderMyHistory();
     renderMyStats();
   }
 
-  // ライブ一覧の表示
+  // --- ツアー別表示 ---
   function renderMasterList() {
     const container = document.getElementById('master-live-list');
-    container.innerHTML = masterLives.map(live => {
-      const isAttended = userData.attendedIds.includes(live.id);
-      return `
-        <div class="card">
-          <b>${live.date}</b><br>${live.title}<br><small>${live.venue}</small>
-          <button class="btn ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${live.id}')">
-            ${isAttended ? '❌ 参戦解除' : '➕ 参戦登録'}
-          </button>
+    const groups = {};
+    masterLives.forEach(l => {
+      if (!groups[l.title]) groups[l.title] = [];
+      groups[l.title].push(l);
+    });
+
+    container.innerHTML = Object.keys(groups).map(title => `
+      <div class="tour-group">
+        <div class="tour-header" onclick="this.nextElementSibling.classList.toggle('open')">
+          ${title} <span>▼</span>
         </div>
-      `;
-    }).join('');
+        <div class="tour-body">
+          ${groups[title].map(live => {
+            const isAttended = userData.attendedIds.includes(live.id);
+            return `
+              <div class="card">
+                <small>${live.date}</small> <b>${live.venue}</b>
+                <button class="btn ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${live.id}')">
+                  ${isAttended ? '取消' : '参戦登録'}
+                </button>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
   }
 
   function toggleAttend(id) {
@@ -150,77 +163,98 @@
     saveUserData();
   }
 
-  // マイ履歴の表示
+  // --- 履歴表示 ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
-    if(myLives.length === 0) { container.innerHTML = "履歴がありません。"; return; }
     
     container.innerHTML = myLives.map(l => `
-      <div class="card">
-        <b>${l.date}</b><br>${l.title}
-        <div style="font-size:0.8em; margin-top:5px; color:#666;">
-          ${getSetlistPreview(l.id)}
+      <div class="card" style="border:1px solid #ddd; padding:15px; border-radius:10px; margin-bottom:15px;">
+        <b>${l.date}</b><br>${l.title}<br><small>${l.venue}</small>
+        <button class="btn btn-edit" onclick="openEditModal('${l.id}')">🎵 セットリストを編集</button>
+        <div style="margin-top:10px; font-size:0.85em; color:#444;">
+          ${(userData.customSetlists[l.id] || []).map((s, i) => `<div>${i+1}. ${getSongTitle(s)}</div>`).join('')}
         </div>
       </div>
     `).join('');
   }
 
-  function getSetlistPreview(liveId) {
-    const set = masterSetlists.filter(s => s.live_id === liveId);
-    return set.length > 0 ? `全${set.length}曲 演奏` : "セトリ未登録";
+  function getSongTitle(songId) {
+    const s = masterSongs.find(sm => sm.id == songId);
+    return s ? s.title : "不明な曲";
   }
 
-  // 統計：自分が聴いた曲ランキング
+  // --- セトリ編集モーダル ---
+  function openEditModal(liveId) {
+    editingLiveId = liveId;
+    const live = masterLives.find(l => l.id == liveId);
+    document.getElementById('modal-title').textContent = live.date + " セットリスト";
+    renderCurrentSetlist();
+    document.getElementById('edit-modal').style.display = 'block';
+  }
+
+  function renderCurrentSetlist() {
+    const list = userData.customSetlists[editingLiveId] || [];
+    document.getElementById('current-setlist').innerHTML = list.map((songId, index) => `
+      <div class="song-item">
+        <span>${index+1}. ${getSongTitle(songId)}</span>
+        <button onclick="removeSong(${index})" style="color:red; border:none; background:none;">削除</button>
+      </div>
+    `).join('') || "曲が登録されていません。";
+  }
+
+  function searchSongs(query) {
+    const results = document.getElementById('search-results');
+    if (!query) { results.innerHTML = ""; return; }
+    const filtered = masterSongs.filter(s => s.title.includes(query)).slice(0, 10);
+    results.innerHTML = filtered.map(s => `
+      <div class="song-item" onclick="addSong('${s.id}')" style="cursor:pointer; background:#f9f9f9; margin-top:2px;">
+        <span>${s.title}</span> <span style="color:blue;">＋追加</span>
+      </div>
+    `).join('');
+  }
+
+  function addSong(songId) {
+    if (!userData.customSetlists[editingLiveId]) userData.customSetlists[editingLiveId] = [];
+    userData.customSetlists[editingLiveId].push(songId);
+    renderCurrentSetlist();
+    saveUserData();
+  }
+
+  function removeSong(index) {
+    userData.customSetlists[editingLiveId].splice(index, 1);
+    renderCurrentSetlist();
+    saveUserData();
+  }
+
+  function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
+
+  // --- 統計 ---
   function renderMyStats() {
-    const container = document.getElementById('my-stats-area');
-    const mySongCounts = {};
-    
-    userData.attendedIds.forEach(liveId => {
-      const set = masterSetlists.filter(s => s.live_id === liveId);
-      set.forEach(s => {
-        mySongCounts[s.song_id] = (mySongCounts[s.song_id] || 0) + 1;
-      });
+    const counts = {};
+    Object.values(userData.customSetlists).forEach(list => {
+      list.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
     });
-
-    const sorted = Object.entries(mySongCounts).sort((a,b) => b[1] - a[1]);
-    let html = "<h4>🎤 自分が生で聴いた回数</h4>";
-    sorted.slice(0, 10).forEach(([id, count]) => {
-      const song = masterSongs.find(s => s.id == id);
-      html += `<div>${song ? song.title : id}: ${count}回</div>`;
-    });
-    container.innerHTML = html || "参戦ログを増やすとランキングが出ます。";
+    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    document.getElementById('my-stats-area').innerHTML = "<h4>My演奏回数ランキング</h4>" + 
+      (sorted.map(([id, count]) => `<div>${getSongTitle(id)} : ${count}回</div>`).join('') || "セトリを登録すると集計されます。");
   }
 
-  // --- バックアップ機能 ---
+  // バックアップ・リストアは前回同様
   function exportBackup() {
     const blob = new Blob([JSON.stringify(userData)], {type: 'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `pg_diary_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `pg_diary_backup.json`;
     a.click();
   }
-
   function importBackup(input) {
-    const file = input.files[0];
     const reader = new FileReader();
-    reader.onload = () => {
-      userData = JSON.parse(reader.result);
-      saveUserData();
-      alert("リストア完了！");
-    };
-    reader.readAsText(file);
-  }
-
-  function clearAllData() {
-    if(confirm("全ての参戦記録を削除しますか？")) {
-      userData = { attendedIds: [], customSetlists: {} };
-      saveUserData();
-    }
+    reader.onload = () => { userData = JSON.parse(reader.result); saveUserData(); alert("復元しました"); };
+    reader.readAsText(input.files[0]);
   }
 
   init();
 </script>
 </body>
 </html>
-
