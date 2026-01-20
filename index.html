@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PG Live Diary</title>
   <style>
     :root { --primary: #e60012; --bg: #f4f4f4; --text: #333; }
@@ -33,18 +33,30 @@
     .btn-del { background: var(--primary); color: white; }
     .btn-edit { background: #007bff; color: white; width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; }
     
-    /* ナビゲーション・モーダルは前回同様 */
+    /* ナビゲーション */
     nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #ddd; z-index: 100; }
     nav button { flex: 1; padding: 15px; border: none; background: none; font-size: 12px; }
     nav button.active { color: var(--primary); font-weight: bold; }
+    
+    /* モーダル */
     #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 1000; overflow-y: auto; }
     .modal-content { background: white; margin: 20px auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
-    .song-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
+    
+    /* iPhoneズーム対策：フォントサイズを16px以上に設定 */
+    #song-search {
+      font-size: 16px !important;
+      width: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .song-item { display: flex; justify-content: space-between; padding: 12px 8px; border-bottom: 1px solid #eee; align-items: center; }
   </style>
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -63,7 +75,10 @@
 <div id="tab-settings" class="tab-content">
   <h3>設定</h3>
   <button class="btn-edit" onclick="exportBackup()" style="background:#666;">📥 バックアップ保存</button>
-  <p>リストア：<input type="file" onchange="importBackup(this)"></p>
+  <div style="margin-top:20px;">
+    <label style="font-size: 0.9em; color: #666;">リストア：</label>
+    <input type="file" onchange="importBackup(this)">
+  </div>
 </div>
 
 <div id="edit-modal">
@@ -72,8 +87,8 @@
     <div id="current-setlist"></div>
     <hr>
     <h4>曲を追加</h4>
-    <input type="text" id="song-search" placeholder="曲名を検索..." oninput="searchSongs(this.value)" style="width:100%; padding:10px; box-sizing:border-box;">
-    <div id="search-results" style="max-height: 200px; overflow-y: auto;"></div>
+    <input type="text" id="song-search" placeholder="曲名を検索..." oninput="searchSongs(this.value)">
+    <div id="search-results" style="max-height: 250px; overflow-y: auto;"></div>
     <button class="btn-mini" onclick="closeModal()" style="background:#333; color:white; width:100%; padding:10px; margin-top:20px;">閉じる</button>
   </div>
 </div>
@@ -97,7 +112,6 @@
         fetch('lives.json').then(r => r.json()),
         fetch('songs_master.json').then(r => r.json())
       ]);
-      // 日付降順にソート
       masterLives = resLives.sort((a, b) => new Date(b.date) - new Date(a.date));
       masterSongs = resSongs;
       loadUserData();
@@ -121,7 +135,6 @@
     renderMyStats();
   }
 
-  // --- 年別・ツアー別表示 ---
   function renderMasterList() {
     const container = document.getElementById('master-live-list');
     const years = {};
@@ -153,7 +166,8 @@
                       <span class="live-date">${live.date.substring(5).replace('-', '/')}</span>
                       <span>${live.venue}</span>
                     </div>
-                    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${live.id}')">
+                    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" 
+                            onclick="event.stopPropagation(); toggleAttend('${live.id}')">
                       ${isAttended ? '✅' : '＋'}
                     </button>
                   </div>`;
@@ -170,8 +184,10 @@
   }
 
   function toggleAttend(id) {
+    // 伝播を確実に止める
+    if (window.event) window.event.stopPropagation();
+
     if (userData.attendedIds.includes(id)) {
-      // 解除する場合の確認
       const live = masterLives.find(l => l.id == id);
       const hasSetlist = userData.customSetlists[id] && userData.customSetlists[id].length > 0;
       
@@ -181,24 +197,18 @@
       }
 
       if (confirm(message)) {
-        // 参戦リストから削除
         userData.attendedIds = userData.attendedIds.filter(i => i !== id);
-        // セットリストデータも削除（裏側に残さない）
         if (userData.customSetlists[id]) {
           delete userData.customSetlists[id];
         }
         saveUserData();
       }
     } else {
-      // 登録する場合はそのまま追加
       userData.attendedIds.push(id);
       saveUserData();
     }
-    event.stopPropagation(); // アコーディオンの開閉を防ぐ
   }
 
-
-  // --- 履歴・編集・統計は前回と同様のロジック ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
@@ -288,6 +298,7 @@
     a.download = `pg_diary_backup.json`;
     a.click();
   }
+
   function importBackup(input) {
     const reader = new FileReader();
     reader.onload = () => { userData = JSON.parse(reader.result); saveUserData(); alert("復元完了"); };
