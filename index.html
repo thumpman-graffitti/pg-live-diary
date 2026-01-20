@@ -44,7 +44,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -171,13 +171,32 @@
 
   function toggleAttend(id) {
     if (userData.attendedIds.includes(id)) {
-      userData.attendedIds = userData.attendedIds.filter(i => i !== id);
+      // 解除する場合の確認
+      const live = masterLives.find(l => l.id == id);
+      const hasSetlist = userData.customSetlists[id] && userData.customSetlists[id].length > 0;
+      
+      let message = `「${live.venue}」の参戦登録を解除しますか？`;
+      if (hasSetlist) {
+        message += "\n※登録済みのセットリストも削除されます。";
+      }
+
+      if (confirm(message)) {
+        // 参戦リストから削除
+        userData.attendedIds = userData.attendedIds.filter(i => i !== id);
+        // セットリストデータも削除（裏側に残さない）
+        if (userData.customSetlists[id]) {
+          delete userData.customSetlists[id];
+        }
+        saveUserData();
+      }
     } else {
+      // 登録する場合はそのまま追加
       userData.attendedIds.push(id);
+      saveUserData();
     }
-    saveUserData();
-    event.stopPropagation(); // アコーディオン開閉を防ぐ
+    event.stopPropagation(); // アコーディオンの開閉を防ぐ
   }
+
 
   // --- 履歴・編集・統計は前回と同様のロジック ---
   function renderMyHistory() {
