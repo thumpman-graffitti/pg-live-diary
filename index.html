@@ -52,7 +52,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -130,12 +130,19 @@
   }
 
   function renderAll() {
-    renderMainLiveList(); // 名前を修正
+    renderMainLiveList();
     renderMyHistory();
     renderMyStats();
   }
 
-  // 「探す」タブのライブ一覧
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('nav-' + tabId).classList.add('active');
+  }
+
+  // --- 探すタブ ---
   function renderMainLiveList() {
     const container = document.getElementById('master-live-list');
     const grouped = {};
@@ -199,14 +206,14 @@
     renderAll();
   }
 
-  // 履歴タブ
+  // --- 履歴タブ ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
     
     let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
     if (myLives.length === 0) {
-      container.innerHTML = html + "<p style='text-align:center; color:#888;'>参戦履歴がありません。</p>";
+      container.innerHTML = html + "<p style='text-align:center; color:#888; padding:20px;'>参戦履歴がありません。</p>";
       return;
     }
 
@@ -236,7 +243,49 @@
     return s ? s.title : "不明な曲";
   }
 
-  // エディタ操作
+  // --- 統計タブ ---
+  function renderMyStats() {
+    const area = document.getElementById('my-stats-area');
+    const counts = {};
+    let totalSongsHeard = 0;
+
+    // 集計
+    Object.values(userData.customSetlists).forEach(list => {
+      list.forEach(sid => {
+        counts[sid] = (counts[sid] || 0) + 1;
+        totalSongsHeard++;
+      });
+    });
+
+    const sortedIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const heardSongIds = new Set(Object.keys(counts).map(String));
+    const unheardSongs = masterSongs.filter(s => !heardSongIds.has(String(s.id)));
+
+    let html = `
+      <div class="stats-summary-header">
+        <div style="font-size:1.2em;">聴いた曲数: ${heardSongIds.size} / ${masterSongs.length}</div>
+        <div style="font-size:0.8em; opacity:0.8;">延べ演奏回数: ${totalSongsHeard}回</div>
+      </div>
+      
+      <h4>🎤 演奏回数ランキング</h4>
+      <div class="stats-card">
+        ${sortedIds.length > 0 ? sortedIds.slice(0, 20).map(sid => `
+          <div class="stat-row">
+            <span class="stat-name">${getSongTitle(sid)}</span>
+            <span class="stat-count"><b>${counts[sid]}</b> 回</span>
+          </div>
+        `).join('') : '<p>データがありません</p>'}
+      </div>
+
+      <h4>🚫 未聴の曲 (${unheardSongs.length})</h4>
+      <div class="stats-card unheard-scroll-container">
+        ${unheardSongs.map(s => `<div style="font-size:0.85em; padding:2px 0;">・${s.title}</div>`).join('')}
+      </div>
+    `;
+    area.innerHTML = html;
+  }
+
+  // --- セトリエディタ ---
   function openSetlistEditor(liveId) {
     currentLiveId = String(liveId);
     const live = masterLives.find(l => String(l.id) === currentLiveId);
@@ -256,14 +305,12 @@
       (s.title || "").toLowerCase().includes(query) || (s.ruby || "").toLowerCase().includes(query)
     );
 
-    // ソート
     filtered.sort((a,b) => (a.ruby || a.title).localeCompare(b.ruby || b.title, 'ja'));
 
     let lastChar = "";
     area.innerHTML = filtered.map(s => {
       const idStr = String(s.id);
       const selIdx = tempSelectedSongs.indexOf(idStr);
-      
       let indexDisplay = "";
       const curChar = (s.ruby || s.title || "#").charAt(0).toUpperCase();
       if (curChar !== lastChar) {
@@ -298,21 +345,47 @@
     document.getElementById('edit-modal').style.display = 'none';
   }
 
-  function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    document.getElementById('nav-' + tabId).classList.add('active');
+  // --- 設定（バックアップ） ---
+  function exportBackup() {
+    const dataStr = JSON.stringify(userData);
+    const blob = new Blob([dataStr], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pg_diary_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
   }
 
-  // 統計などの他関数は省略せずにここ以降に記述可能
-  function renderMyStats() {
-    // 統計ロジック（前回のものを流用可能）
-    const area = document.getElementById('my-stats-area');
-    if(area) area.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>履歴から自動集計されます</p>";
+  function importBackup() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = event => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          if (imported.attendedIds) {
+            userData = imported;
+            saveUserData();
+            renderAll();
+            alert("データを復元しました！");
+          }
+        } catch (err) {
+          alert("無効なファイルです。");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   }
 
   init();
 </script>
+
+
+
+
 </body>
 </html>
