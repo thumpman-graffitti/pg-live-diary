@@ -87,7 +87,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary8</h1></header>
+<header><h1>🎸 PG Live Diary9</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -398,7 +398,7 @@ let isStatsFull = false;
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
   
-  // --- 曲分析 ---
+  // --- 1. 曲の分析 ---
   const songAnalysis = {};
   Object.entries(userData.customSetlists).forEach(([liveId, songIds]) => {
     const live = masterLives.find(l => String(l.id) === String(liveId));
@@ -415,7 +415,7 @@ function renderMyStats() {
   });
   const sortedSongs = Object.entries(songAnalysis).sort((a,b) => b[1].count - a[1].count);
 
-  // --- 都道府県分析 ---
+  // --- 2. 都道府県の分析 ---
   const prefAnalysis = {};
   myLives.forEach(l => {
     const p = l.pref || l.prefecture || l.area;
@@ -429,22 +429,24 @@ function renderMyStats() {
       }
     }
   });
-  const sortedPrefs = Object.entries(prefAnalysis).sort((a,b) => b[1].count - a[1].count);
+  const sortedPrefs = Object.entries(prefAnalysis).sort((a,b) => b[1] - a[1]);
 
   const heardSongIds = Object.keys(songAnalysis);
   const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
 
-  // --- 表示制限（TOP10に変更） ---
+  // 表示制限の適用
   const displayLimit = isStatsFull ? undefined : 10;
   const songsToShow = sortedSongs.slice(0, displayLimit);
   const prefsToShow = sortedPrefs.slice(0, displayLimit);
 
+  // --- HTML組み立て ---
   let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
 
-  // ① 曲ランキング
+  // ① 聴いた曲ランキング
   html += `
     <div class="stats-card">
       <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
+      <p style="font-size:0.7em; color:#999; margin: -5px 0 10px 0;">曲名タップで詳細履歴を表示</p>
       <div class="stats-list">
         ${songsToShow.map(([id, data], i) => `
           <div class="stat-row-group">
@@ -455,22 +457,29 @@ function renderMyStats() {
             </div>
             <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
           </div>
-        `).join('')}
+        `).join('') || '<p class="empty-msg">データなし</p>'}
       </div>
     </div>`;
 
-  // ② 未遭遇曲
+  // 曲ランキング用のボタン
+  if (sortedSongs.length > 10) {
+    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
+  }
+
+  // ② 未遭遇曲一覧
   html += `
     <div class="stats-card">
       <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
-      <div class="unheard-scroll-container"><div class="unheard-list">
-        ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
-      </div></div>
+      <div class="unheard-scroll-container">
+        <div class="unheard-list">
+          ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('') || '<span>コンプリート！</span>'}
+        </div>
+      </div>
     </div>`;
 
   // ③ 都道府県ランキング
   html += `
-    <div class="stats-card">
+    <div class="stats-card" style="margin-top:20px;">
       <h5>🗺️ 都道府県ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
       <div class="stats-list">
         ${prefsToShow.map(([pref, data], i) => `
@@ -482,17 +491,19 @@ function renderMyStats() {
             </div>
             <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
           </div>
-        `).join('')}
+        `).join('') || '<p class="empty-msg">データなし</p>'}
       </div>
     </div>`;
 
-  // もっと見るボタン
-  if (sortedSongs.length > 10 || sortedPrefs.length > 10) {
-    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ もっと見る'}</button>`;
+  // 都道府県用のボタン
+  if (sortedPrefs.length > 10) {
+    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 都道府県をもっと見る'}</button>`;
   }
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
+
+
 
 // 都道府県の履歴ポップアップ
 function alertPrefHistory(prefName) {
