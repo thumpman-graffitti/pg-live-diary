@@ -196,7 +196,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary3</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -474,36 +474,20 @@ function toggleSetlistDisplay(id) {
 
 let tempSelectedSongs = []; // 編集中の選択順を一時保存
 
-// 1. エディタを開く
 function openSetlistEditor(liveId) {
-  const live = masterLives.find(l => String(l.id) === String(liveId));
-  // 既存のセトリがあれば読み込み、なければ空
-  tempSelectedSongs = userData.customSetlists[liveId] ? [...userData.customSetlists[liveId]] : [];
-
-  const container = document.getElementById('modal-container');
-  container.innerHTML = `
-    <div class="editor-header-sticky">
-      <div style="display:flex; justify-content:space-between; align-items:start;">
-        <h4 style="margin:0; font-size:1.1em;">セトリ登録: ${live.title}</h4>
-        <button onclick="closeModal()" style="border:none; background:none; font-size:1.5em;">&times;</button>
-      </div>
-      <p style="font-size:0.7em; color:#e60012; margin: 5px 0; font-weight:bold;">タップした順に曲順が決定します</p>
-      <input type="text" id="song-filter" placeholder="曲名を絞り込み..." oninput="renderMasterSongList()" 
-             style="width:100%; padding:12px; border-radius:5px; border:1px solid #ccc; font-size:16px;">
-    </div>
+    currentLiveId = liveId;
+    const live = lives.find(l => l.id === liveId);
+    // tempSelectedSongsをセット。マスタに存在しないIDが含まれていてもエラーにならないようにする
+    tempSelectedSongs = live ? [...live.setlist.map(String)] : [];
     
-    <div id="master-song-select-area" class="setlist-scroll-area">
-      </div>
+    document.getElementById('modal-live-title').textContent = live ? live.title : "新規セトリ";
+    document.getElementById('setlist-modal').style.display = 'flex';
     
-    <div class="editor-footer">
-      <button class="btn-edit" onclick="saveCheckedSetlist('${liveId}')" style="flex:2; margin-top:0; background:var(--primary);">登録する</button>
-      <button class="btn-edit" onclick="closeModal()" style="background:#666; flex:1; margin-top:0;">戻る</button>
-    </div>
-  `;
-  
-  document.getElementById('edit-modal').style.display = 'block';
-  renderMasterSongList();
+    renderMasterSongList(); // ここでリストを描画
 }
+
+
+
 
 // 2. 曲リストを描画（絞り込み対応）
 function renderMasterSongList() {
