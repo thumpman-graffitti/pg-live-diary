@@ -241,7 +241,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary6</h1></header>
+<header><h1>🎸 PG Live Diary7</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -549,23 +549,25 @@ function toggleSetlistDisplay(id) {
 let isStatsFull = false; 
 
 
+
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
   
-  // 曲ごとの「参戦ライブ」と「最終参戦日」を算出
+  // 1. 曲ごとの分析（回数・最新ライブ情報）
   const songAnalysis = {};
   Object.entries(userData.customSetlists).forEach(([liveId, songIds]) => {
-    const live = masterLives.find(l => l.id == liveId);
+    const live = masterLives.find(l => String(l.id) === String(liveId));
     if (!live) return;
     
     songIds.forEach(sid => {
       if (!songAnalysis[sid]) {
-        songAnalysis[sid] = { count: 0, lastDate: "" };
+        songAnalysis[sid] = { count: 0, lastDate: "", lastLiveName: "", lastVenue: "" };
       }
       songAnalysis[sid].count += 1;
-      // 最新の演奏日を特定
       if (live.date > songAnalysis[sid].lastDate) {
         songAnalysis[sid].lastDate = live.date;
+        songAnalysis[sid].lastLiveName = live.title;
+        songAnalysis[sid].lastVenue = live.venue;
       }
     });
   });
@@ -574,6 +576,7 @@ function renderMyStats() {
   const heardSongIds = Object.keys(songAnalysis);
   const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
   
+  // 都道府県の集計（ここも念のため含めておきます）
   const prefCounts = {};
   myLives.forEach(l => {
     const p = l.pref || l.prefecture || l.area;
@@ -585,14 +588,14 @@ function renderMyStats() {
   const songsToShow = sortedSongs.slice(0, displayLimit);
   const prefsToShow = sortedPrefs.slice(0, displayLimit);
 
-  // 1番上に参戦回数を表示
+  // --- HTML組み立て開始 ---
   let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
 
-  // ① 聴いた曲ランキング (TOP20 / 全件)
+  // ① 聴いた曲ランキング
   html += `
     <div class="stats-card">
       <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP20)' : '(全件)'}</h5>
-      <p style="font-size:0.7em; color:#999; margin: -5px 0 10px 0;">曲名タップで履歴を表示</p>
+      <p style="font-size:0.7em; color:#999; margin: -5px 0 10px 0;">曲名タップで全履歴を表示</p>
       <div class="stats-list">
         ${songsToShow.map(([id, data], i) => `
           <div class="stat-row-group">
@@ -601,22 +604,20 @@ function renderMyStats() {
               <span class="stat-name" style="color:var(--primary); text-decoration:underline; font-weight:bold;">${getSongTitle(id)}</span>
               <b class="stat-count">${data.count}回</b>
             </div>
-            <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')}</div>
+            <div class="stat-last-date">
+              Last: ${data.lastDate.substring(2).replace(/-/g,'/')} <br>
+              <span style="color:#666; font-size:0.9em;">${data.lastLiveName} @${data.lastVenue}</span>
+            </div>
           </div>
         `).join('') || '<p class="empty-msg">データなし</p>'}
       </div>
     </div>`;
 
-  // 曲ランキング用の「もっと見る」ボタン
   if (sortedSongs.length > 20) {
-    html += `
-      <button class="btn-more" onclick="toggleStatsFull()">
-        ${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}
-      </button>
-    `;
+    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
   }
 
-  // ② 未遭遇曲一覧 (スクロール枠)
+  // ② 未遭遇曲一覧
   html += `
     <div class="stats-card">
       <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
@@ -627,7 +628,7 @@ function renderMyStats() {
       </div>
     </div>`;
 
-  // ③ 都道府県ランキング
+  // ③ 都道府県ランキング（ここから下は既存のままでもOKですが、一応繋げます）
   html += `
     <div class="stats-card" style="margin-top:20px;">
       <h5>🗺️ 都道府県ランキング</h5>
@@ -638,12 +639,38 @@ function renderMyStats() {
             <span class="stat-name">${pref}</span>
             <b class="stat-count">${count}回</b>
           </div>
-        `).join('') || '<p class="empty-msg">データなし</p>'}
+        `).join('')}
       </div>
     </div>`;
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
+
+
+function alertSongHistory(songId) {
+  const songTitle = getSongTitle(songId);
+  const history = [];
+
+  // 全てのセットリストをループして、その曲が含まれるライブを探す
+  Object.entries(userData.customSetlists).forEach(([liveId, songIds]) => {
+    // songIdsの中身が数値の場合もあるので、Stringで比較
+    if (songIds.some(sid => String(sid) === String(songId))) {
+      const live = masterLives.find(l => String(l.id) === String(liveId));
+      if (live) {
+        history.push(`${live.date} ${live.title} @${live.venue}`);
+      }
+    }
+  });
+
+  if (history.length > 0) {
+    // 日付順（新しい順）に並び替えて表示
+    const message = history.sort().reverse().join('\n');
+    alert(`【${songTitle}】の参戦履歴 (${history.length}回)\n\n${message}`);
+  } else {
+    alert('履歴が見つかりませんでした。');
+  }
+}
+
 
 
 
