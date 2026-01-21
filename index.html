@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PG Live Diary</title>
+
   <style>
     :root { --primary: #e60012; --bg: #f4f4f4; --text: #333; }
     body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; color: var(--text); }
@@ -42,206 +43,51 @@
     #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 1000; overflow-y: auto; }
     .modal-content { background: white; margin: 20px auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
     
-    /* iPhoneズーム対策：フォントサイズを16px以上に設定 */
-    #song-search {
-      font-size: 16px !important;
-      width: 100%;
-      padding: 12px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
+    /* iPhoneズーム対策 */
+    #song-search { font-size: 16px !important; width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
     .song-item { display: flex; justify-content: space-between; padding: 12px 8px; border-bottom: 1px solid #eee; align-items: center; }
 
-/* 履歴カードをコンパクトに */
-.my-log-card {
-  display: block !important; /* flexから変更 */
-  padding: 10px 12px !important;
-  margin-bottom: 8px !important;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
+    /* 履歴カードをコンパクトに */
+    .my-log-card { display: block !important; padding: 10px 12px !important; margin-bottom: 8px !important; background: white; border-radius: 6px; border: 1px solid #ddd; }
+    .log-title-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+    .log-date { font-size: 0.8em; color: #888; font-family: monospace; }
+    .log-title { font-weight: bold; font-size: 1em; color: var(--primary); flex: 1; }
+    .log-venue { font-size: 0.85em; color: #333; margin-bottom: 8px; }
+    .log-actions { display: flex; gap: 5px; border-top: 1px dashed #eee; padding-top: 8px; }
+    .btn-view-setlist { background: #f0f0f0; color: #333; flex: 2; }
+    .btn-edit-icon { background: #666; color: white; flex: 1; }
+    .setlist-collapse { display: none; background: #fdfdfd; margin-top: 8px; padding: 8px; border-radius: 4px; font-size: 0.85em; color: #555; border-left: 2px solid #ccc; line-height: 1.5; }
+    .setlist-collapse.open { display: block; }        
 
-.log-title-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 2px;
-}
+    /* --- 統計ページデザイン --- */
+    .stats-summary-header { background: #333; color: white; text-align: center; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1em; margin-bottom: 15px; }
+    
+    .stats-card { background: white; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+    .stats-card h5 { margin: 0 0 8px 0; color: var(--primary); border-bottom: 2px solid #f4f4f4; padding-bottom: 4px; font-size: 0.9em; }
 
-.log-date { font-size: 0.8em; color: #888; font-family: monospace; }
-.log-title { font-weight: bold; font-size: 1em; color: var(--primary); flex: 1; }
-.log-venue { font-size: 0.85em; color: #333; margin-bottom: 8px; }
+    .stat-row-group { border-bottom: 1px solid #f2f2f2; padding: 4px 0; }
+    .stat-row { display: flex; align-items: center; padding: 0; font-size: 0.85em; cursor: pointer; }
+    .stat-rank { width: 25px; font-size: 0.75em; color: #aaa; font-weight: bold; }
+    .stat-name { flex: 1; color: var(--primary); text-decoration: underline; font-weight: bold; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-count { min-width: 35px; text-align: right; color: var(--primary); font-size: 0.9em; font-weight: bold; }
 
-/* ボタンエリア */
-.log-actions {
-  display: flex;
-  gap: 5px;
-  border-top: 1px dashed #eee;
-  padding-top: 8px;
-}
+    .stat-last-date { font-size: 0.65em; color: #888; margin-left: 25px; margin-top: -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-bottom: 2px; }
 
-.btn-view-setlist { background: #f0f0f0; color: #333; flex: 2; }
-.btn-edit-icon { background: #666; color: white; flex: 1; }
+    /* もっと見るボタン */
+    .btn-more { width: 100%; padding: 10px; background: #eee; border: none; border-radius: 8px; color: #666; font-weight: bold; cursor: pointer; margin: 5px 0 15px 0; font-size: 0.85em; }
 
-/* セットリストの折りたたみ */
-.setlist-collapse {
-  display: none;
-  background: #fdfdfd;
-  margin-top: 8px;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-  color: #555;
-  border-left: 2px solid #ccc;
-  line-height: 1.5;
-}
-
-.setlist-collapse.open {
-  display: block;
-}        
+    /* 未遭遇曲のスクロール枠 */
+    .unheard-scroll-container { max-height: 150px; overflow-y: auto; background: #fafafa; border-radius: 6px; border: 1px solid #eee; padding: 8px; }
+    .unheard-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+    .unheard-item { font-size: 0.72em; color: #888; padding: 3px 0; border-bottom: 1px solid #f0f0f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .unheard-item::before { content: "• "; color: #ccc; }
+  </style>
 
 
-/* --- 統計ページ用デザイン --- */
-.stats-card {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  margin-bottom: 12px;
-}
-
-.stats-card h5 {
-  margin: 0 0 12px 0;
-  color: var(--primary);
-  border-bottom: 2px solid #f4f4f4;
-  padding-bottom: 6px;
-  font-size: 0.95em;
-}
-
-/* ランキングの行 */
-.stat-row {
-  display: flex;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f9f9f9;
-  font-size: 0.9em;
-}
-
-.stat-rank {
-  width: 30px;
-  font-size: 0.8em;
-  color: #aaa;
-  font-family: monospace;
-  font-weight: bold;
-}
-
-.stat-name {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 10px;
-}
-
-.stat-count {
-  color: var(--primary);
-  min-width: 40px;
-  text-align: right;
-  font-weight: bold;
-}
-
-/* もっと見るボタン */
-.btn-more {
-  width: 100%;
-  padding: 12px;
-  background: #eee;
-  border: none;
-  border-radius: 8px;
-  color: #666;
-  font-weight: bold;
-  cursor: pointer;
-  margin: 5px 0 25px 0;
-}
-
-.btn-more:active {
-  background: #ddd;
-}
-
-/* 未遭遇曲のスクロール枠 */
-.unheard-scroll-container {
-  max-height: 180px; /* iPhoneで長くなりすぎない高さ */
-  overflow-y: auto;
-  background: #fafafa;
-  border-radius: 6px;
-  border: 1px solid #eee;
-  padding: 10px;
-}
-
-.unheard-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2列 */
-  gap: 4px 15px;
-}
-
-.unheard-item {
-  font-size: 0.75em;
-  color: #888;
-  padding: 4px 0;
-  border-bottom: 1px solid #f0f0f0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.unheard-item::before {
-  content: "• ";
-  color: #ccc;
-}
-
-/* 参戦数表示用ヘッダー */
-.stats-summary-header {
-  background: #333;
-  color: white;
-  text-align: center;
-  padding: 15px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1.2em;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* ランキング行のグループ化 */
-.stat-row-group {
-  border-bottom: 1px solid #f9f9f9;
-  padding: 4px 0;
-}
-
-.stat-row-group .stat-row {
-  border-bottom: none; /* グループ化するので下の線は消す */
-  padding-bottom: 0;
-}
-
-/* 直近の日付表示 */
-.stat-last-date {
-  font-size: 0.7em;
-  color: #999;
-  margin-left: 30px; /* 順位の幅に合わせる */
-  margin-top: -2px;
-  padding-bottom: 4px;
-}
-
-                    
-                    
-                              
-                                        
-</style>
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary7</h1></header>
+<header><h1>🎸 PG Live Diary8</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -549,20 +395,16 @@ function toggleSetlistDisplay(id) {
 let isStatsFull = false; 
 
 
-
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
   
-  // 1. 曲ごとの分析（回数・最新ライブ情報）
+  // --- 曲分析 ---
   const songAnalysis = {};
   Object.entries(userData.customSetlists).forEach(([liveId, songIds]) => {
     const live = masterLives.find(l => String(l.id) === String(liveId));
     if (!live) return;
-    
     songIds.forEach(sid => {
-      if (!songAnalysis[sid]) {
-        songAnalysis[sid] = { count: 0, lastDate: "", lastLiveName: "", lastVenue: "" };
-      }
+      if (!songAnalysis[sid]) songAnalysis[sid] = { count: 0, lastDate: "", lastLiveName: "", lastVenue: "" };
       songAnalysis[sid].count += 1;
       if (live.date > songAnalysis[sid].lastDate) {
         songAnalysis[sid].lastDate = live.date;
@@ -571,80 +413,98 @@ function renderMyStats() {
       }
     });
   });
-
   const sortedSongs = Object.entries(songAnalysis).sort((a,b) => b[1].count - a[1].count);
-  const heardSongIds = Object.keys(songAnalysis);
-  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
-  
-  // 都道府県の集計（ここも念のため含めておきます）
-  const prefCounts = {};
+
+  // --- 都道府県分析 ---
+  const prefAnalysis = {};
   myLives.forEach(l => {
     const p = l.pref || l.prefecture || l.area;
-    if (p) prefCounts[p] = (prefCounts[p] || 0) + 1;
+    if (p) {
+      if (!prefAnalysis[p]) prefAnalysis[p] = { count: 0, lastDate: "", lastLiveName: "", lastVenue: "" };
+      prefAnalysis[p].count += 1;
+      if (l.date > prefAnalysis[p].lastDate) {
+        prefAnalysis[p].lastDate = l.date;
+        prefAnalysis[p].lastLiveName = l.title;
+        prefAnalysis[p].lastVenue = l.venue;
+      }
+    }
   });
-  const sortedPrefs = Object.entries(prefCounts).sort((a,b) => b[1] - a[1]);
+  const sortedPrefs = Object.entries(prefAnalysis).sort((a,b) => b[1].count - a[1].count);
 
-  const displayLimit = isStatsFull ? undefined : 20;
+  const heardSongIds = Object.keys(songAnalysis);
+  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
+
+  // --- 表示制限（TOP10に変更） ---
+  const displayLimit = isStatsFull ? undefined : 10;
   const songsToShow = sortedSongs.slice(0, displayLimit);
   const prefsToShow = sortedPrefs.slice(0, displayLimit);
 
-  // --- HTML組み立て開始 ---
   let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
 
-  // ① 聴いた曲ランキング
+  // ① 曲ランキング
   html += `
     <div class="stats-card">
-      <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP20)' : '(全件)'}</h5>
-      <p style="font-size:0.7em; color:#999; margin: -5px 0 10px 0;">曲名タップで全履歴を表示</p>
+      <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
       <div class="stats-list">
         ${songsToShow.map(([id, data], i) => `
           <div class="stat-row-group">
             <div class="stat-row" onclick="alertSongHistory('${id}')">
               <span class="stat-rank">${i + 1}</span>
-              <span class="stat-name" style="color:var(--primary); text-decoration:underline; font-weight:bold;">${getSongTitle(id)}</span>
+              <span class="stat-name">${getSongTitle(id)}</span>
               <b class="stat-count">${data.count}回</b>
             </div>
-            <div class="stat-last-date">
-              Last: ${data.lastDate.substring(2).replace(/-/g,'/')} <br>
-              <span style="color:#666; font-size:0.9em;">${data.lastLiveName} @${data.lastVenue}</span>
-            </div>
-          </div>
-        `).join('') || '<p class="empty-msg">データなし</p>'}
-      </div>
-    </div>`;
-
-  if (sortedSongs.length > 20) {
-    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
-  }
-
-  // ② 未遭遇曲一覧
-  html += `
-    <div class="stats-card">
-      <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
-      <div class="unheard-scroll-container">
-        <div class="unheard-list">
-          ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('') || '<span>全曲コンプリート！</span>'}
-        </div>
-      </div>
-    </div>`;
-
-  // ③ 都道府県ランキング（ここから下は既存のままでもOKですが、一応繋げます）
-  html += `
-    <div class="stats-card" style="margin-top:20px;">
-      <h5>🗺️ 都道府県ランキング</h5>
-      <div class="stats-list">
-        ${prefsToShow.map(([pref, count], i) => `
-          <div class="stat-row">
-            <span class="stat-rank">${i + 1}</span>
-            <span class="stat-name">${pref}</span>
-            <b class="stat-count">${count}回</b>
+            <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
           </div>
         `).join('')}
       </div>
     </div>`;
 
+  // ② 未遭遇曲
+  html += `
+    <div class="stats-card">
+      <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
+      <div class="unheard-scroll-container"><div class="unheard-list">
+        ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
+      </div></div>
+    </div>`;
+
+  // ③ 都道府県ランキング
+  html += `
+    <div class="stats-card">
+      <h5>🗺️ 都道府県ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
+      <div class="stats-list">
+        ${prefsToShow.map(([pref, data], i) => `
+          <div class="stat-row-group">
+            <div class="stat-row" onclick="alertPrefHistory('${pref}')">
+              <span class="stat-rank">${i + 1}</span>
+              <span class="stat-name">${pref}</span>
+              <b class="stat-count">${data.count}回</b>
+            </div>
+            <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  // もっと見るボタン
+  if (sortedSongs.length > 10 || sortedPrefs.length > 10) {
+    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ もっと見る'}</button>`;
+  }
+
   document.getElementById('my-stats-area').innerHTML = html;
 }
+
+// 都道府県の履歴ポップアップ
+function alertPrefHistory(prefName) {
+  const history = masterLives
+    .filter(l => userData.attendedIds.includes(l.id) && (l.pref === prefName || l.prefecture === prefName || l.area === prefName))
+    .map(l => `${l.date} ${l.title} @${l.venue}`);
+  
+  if (history.length > 0) {
+    alert(`【${prefName}】の参戦履歴 (${history.length}回)\n\n${history.sort().reverse().join('\n')}`);
+  }
+}
+
 
 
 function alertSongHistory(songId) {
