@@ -48,11 +48,35 @@
     .song-index-label { width: 30px; font-size: 0.8em; color: var(--primary); font-weight: bold; }
     .song-title-text { flex: 1; font-size: 0.9em; }
     .song-number-badge { background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75em; }
-  </style>
+/* 統計・グラフ用スタイル */
+.stat-ranking-item { background: white; border-bottom: 1px solid #eee; padding: 10px; }
+.stat-ranking-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.stat-rank-num { font-weight: bold; width: 30px; color: var(--primary); }
+.stat-song-info { flex: 1; }
+.stat-song-title { font-weight: bold; font-size: 1em; }
+.stat-latest-info { font-size: 0.75em; color: #888; margin-top: 2px; }
+.stat-count-badge { background: #eee; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold; }
+.stat-details-list { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; background: #fafafa; padding: 10px; border-radius: 5px; }
+.stat-details-list.open { display: block; }
+.detail-row { font-size: 0.8em; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+
+/* グラフ用 */
+.graph-container { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
+.graph-row { display: flex; align-items: center; margin-bottom: 6px; font-size: 0.8em; }
+.graph-label { width: 40px; text-align: right; margin-right: 8px; color: #555; }
+.graph-bar-area { flex: 1; background: #f0f0f0; height: 16px; border-radius: 4px; overflow: hidden; }
+.graph-bar { height: 100%; background: var(--primary); }
+.graph-val { margin-left: 6px; width: 25px; font-weight: bold; color: #333; }
+
+/* もっと見るボタン */
+.btn-show-more { width: 100%; padding: 10px; background: #eee; border: none; color: #555; margin-top: 10px; cursor: pointer; border-radius: 5px; }
+.hidden-rank-item { display: none; }
+
+    </style>
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -65,13 +89,38 @@
 
 <div id="tab-stats" class="tab-content">
   <h3>マイ統計</h3>
-  <div id="my-stats-area"></div>
+  
+  <div id="stats-total-lives" class="stats-summary-header"></div>
+
+  <h4>🎤 聴いた曲ランキング</h4>
+  <div id="stats-song-ranking" class="stats-card" style="padding:0; overflow:hidden;"></div>
+  <button id="btn-more-songs" class="btn-show-more" onclick="showMoreRanking('song')">もっと見る (21位以下)</button>
+
+  <h4>🚫 まだ聴いていない曲</h4>
+  <div id="stats-unheard-list" class="stats-card unheard-scroll-container"></div>
+
+  <h4>📅 年別参加数 (1999〜)</h4>
+  <div id="stats-year-graph" class="graph-container"></div>
+
+  <h4>📍 会場ランキング</h4>
+  <div id="stats-venue-ranking" class="stats-card" style="padding:0; overflow:hidden;"></div>
+  <button id="btn-more-venues" class="btn-show-more" onclick="showMoreRanking('venue')">もっと見る (21位以下)</button>
 </div>
 
 <div id="tab-settings" class="tab-content">
   <h3>設定</h3>
-  <button class="btn-edit" onclick="exportBackup()" style="background:#666;">📥 バックアップ保存</button>
+  <div class="card">
+    <p>データのバックアップと復元を行います。</p>
+    <button class="btn-edit" onclick="exportBackup()" style="background:#666; margin-bottom:15px;">📥 バックアップ保存 (Export)</button>
+    
+    <div style="border-top:1px solid #eee; padding-top:15px;">
+      <p style="font-size:0.9em; margin-bottom:5px;">データを復元 (Import):</p>
+      <input type="file" id="import-file" accept=".json" onchange="importBackup(this)" style="font-size:0.9em;">
+    </div>
+  </div>
 </div>
+
+
 
 <div id="edit-modal">
   <div class="modal-content">
@@ -115,8 +164,8 @@
       loadUserData();
       renderAll();
     } catch (e) {
-      console.error("データ読み込みエラー:", e);
-      document.getElementById('master-live-list').innerHTML = "データの読み込みに失敗しました。";
+      console.error("Load Error:", e);
+      document.getElementById('master-live-list').innerHTML = "データ読み込みエラー";
     }
   }
 
@@ -142,7 +191,7 @@
     document.getElementById('nav-' + tabId).classList.add('active');
   }
 
-  // --- 探すタブ ---
+  // --- 1. 探すタブ ---
   function renderMainLiveList() {
     const container = document.getElementById('master-live-list');
     const grouped = {};
@@ -160,7 +209,7 @@
         const livesInTour = grouped[year][tourTitle];
         html += `
           <div class="tour-group">
-            <div class="tour-header" onclick="toggleTour(event, this)">
+            <div class="tour-header" onclick="this.nextElementSibling.classList.toggle('open')">
               <span>${tourTitle}</span>
               <span style="font-size:0.8em; color:#888;">${livesInTour.length}公演 ▾</span>
             </div>
@@ -176,8 +225,7 @@
                     <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${l.id}')">
                       ${isAttended ? '✅' : '＋'}
                     </button>
-                  </div>
-                `;
+                  </div>`;
               }).join('')}
             </div>
           </div>`;
@@ -187,15 +235,11 @@
     container.innerHTML = html;
   }
 
-  function toggleTour(e, header) {
-    header.nextElementSibling.classList.toggle('open');
-  }
-
   function toggleAttend(id) {
     const idStr = String(id);
     const index = userData.attendedIds.indexOf(idStr);
     if (index > -1) {
-      if (confirm("参戦登録を解除しますか？（セトリも消去されます）")) {
+      if (confirm("解除してよろしいですか？（セトリ情報も削除されます）")) {
         userData.attendedIds.splice(index, 1);
         delete userData.customSetlists[idStr];
       }
@@ -206,18 +250,20 @@
     renderAll();
   }
 
-  // --- 履歴タブ ---
+  // --- 2. 履歴タブ ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
     
-    let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
+    // 統計トップの数字更新
+    document.getElementById('stats-total-lives').textContent = `Total Lives: ${myLives.length} 回参戦`;
+
     if (myLives.length === 0) {
-      container.innerHTML = html + "<p style='text-align:center; color:#888; padding:20px;'>参戦履歴がありません。</p>";
+      container.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
       return;
     }
 
-    html += myLives.map(l => {
+    container.innerHTML = myLives.map(l => {
       const setlist = userData.customSetlists[String(l.id)] || [];
       return `
         <div class="card my-log-card">
@@ -235,7 +281,145 @@
           </div>
         </div>`;
     }).join('');
-    container.innerHTML = html;
+  }
+
+  // --- 3. 統計タブ（ご要望の全機能実装） ---
+  function renderMyStats() {
+    // データ集計
+    const songCounts = {}; // { songId: { count: 0, lives: [] } }
+    const venueCounts = {}; // { venueName: { count: 0, lives: [] } }
+    const yearCounts = {}; // { year: count }
+
+    // 初期化: 年ごとの枠を作る(1999〜現在)
+    const currentYear = new Date().getFullYear();
+    for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
+
+    // ユーザーデータから集計
+    userData.attendedIds.forEach(liveId => {
+      const live = masterLives.find(l => String(l.id) === String(liveId));
+      if (!live) return;
+
+      // 年別
+      const y = live.date.substring(0, 4);
+      if (yearCounts[y] !== undefined) yearCounts[y]++;
+
+      // 会場別（単純に会場名でグルーピング）
+      if (!venueCounts[live.venue]) venueCounts[live.venue] = { count: 0, lives: [] };
+      venueCounts[live.venue].count++;
+      venueCounts[live.venue].lives.push(live);
+
+      // 曲別
+      const setlist = userData.customSetlists[liveId] || [];
+      setlist.forEach(sid => {
+        if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
+        songCounts[sid].count++;
+        songCounts[sid].lives.push(live);
+      });
+    });
+
+    // --- A. 聴いた曲ランキング ---
+    const sortedSongs = Object.keys(songCounts).map(sid => {
+      const data = songCounts[sid];
+      // 日付降順にソート（最新が先頭）
+      data.lives.sort((a,b) => new Date(b.date) - new Date(a.date));
+      return { id: sid, ...data };
+    }).sort((a, b) => b.count - a.count);
+
+    const songHtml = sortedSongs.map((item, idx) => {
+      const song = masterSongs.find(s => String(s.id) === String(item.id));
+      const latest = item.lives[0]; // 最新ライブ
+      const hideClass = idx >= 20 ? 'hidden-rank-item song-hidden' : '';
+      
+      const detailsHtml = item.lives.map(l => 
+        `<div class="detail-row">${l.date} : ${l.title} (${l.venue})</div>`
+      ).join('');
+
+      return `
+        <div class="stat-ranking-item ${hideClass}">
+          <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-song-info">
+              <div class="stat-song-title">${song ? song.title : '不明'}</div>
+              <div class="stat-latest-info">
+                最後の演奏: ${latest.date}<br>
+                ${latest.title} @ ${latest.venue}
+              </div>
+            </div>
+            <div class="stat-count-badge">${item.count}回</div>
+          </div>
+          <div class="stat-details-list">
+            <strong>演奏履歴:</strong>
+            ${detailsHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('stats-song-ranking').innerHTML = songHtml || '<div style="padding:10px">データなし</div>';
+    document.getElementById('btn-more-songs').style.display = sortedSongs.length > 20 ? 'block' : 'none';
+
+    // --- B. 未聴曲リスト ---
+    const heardIds = new Set(Object.keys(songCounts));
+    const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
+    document.getElementById('stats-unheard-list').innerHTML = unheard.map(s => 
+      `<div style="padding:4px 0; border-bottom:1px solid #eee;">${s.title}</div>`
+    ).join('');
+
+    // --- C. 年別グラフ ---
+    const maxVal = Math.max(...Object.values(yearCounts), 1);
+    const graphHtml = Object.keys(yearCounts).map(year => {
+      const val = yearCounts[year];
+      const width = (val / maxVal) * 100;
+      return `
+        <div class="graph-row">
+          <div class="graph-label">${year}</div>
+          <div class="graph-bar-area">
+            <div class="graph-bar" style="width: ${width}%;"></div>
+          </div>
+          <div class="graph-val">${val}</div>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('stats-year-graph').innerHTML = graphHtml;
+
+    // --- D. 会場ランキング ---
+    const sortedVenues = Object.keys(venueCounts).map(v => {
+      return { name: v, ...venueCounts[v] };
+    }).sort((a,b) => b.count - a.count);
+
+    const venueHtml = sortedVenues.map((item, idx) => {
+      const hideClass = idx >= 20 ? 'hidden-rank-item venue-hidden' : '';
+      const detailsHtml = item.lives.map(l => 
+        `<div class="detail-row">${l.date} : ${l.title}</div>`
+      ).join('');
+
+      return `
+        <div class="stat-ranking-item ${hideClass}">
+          <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-song-info">
+              <div class="stat-song-title">${item.name}</div>
+            </div>
+            <div class="stat-count-badge">${item.count}回</div>
+          </div>
+          <div class="stat-details-list">
+            <strong>参加履歴:</strong>
+            ${detailsHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('stats-venue-ranking').innerHTML = venueHtml || '<div style="padding:10px">データなし</div>';
+    document.getElementById('btn-more-venues').style.display = sortedVenues.length > 20 ? 'block' : 'none';
+  }
+
+  function showMoreRanking(type) {
+    const selector = type === 'song' ? '.song-hidden' : '.venue-hidden';
+    document.querySelectorAll(selector).forEach(el => {
+      el.classList.remove('hidden-rank-item');
+    });
+    document.getElementById(type === 'song' ? 'btn-more-songs' : 'btn-more-venues').style.display = 'none';
   }
 
   function getSongTitle(id) {
@@ -243,49 +427,7 @@
     return s ? s.title : "不明な曲";
   }
 
-  // --- 統計タブ ---
-  function renderMyStats() {
-    const area = document.getElementById('my-stats-area');
-    const counts = {};
-    let totalSongsHeard = 0;
-
-    // 集計
-    Object.values(userData.customSetlists).forEach(list => {
-      list.forEach(sid => {
-        counts[sid] = (counts[sid] || 0) + 1;
-        totalSongsHeard++;
-      });
-    });
-
-    const sortedIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-    const heardSongIds = new Set(Object.keys(counts).map(String));
-    const unheardSongs = masterSongs.filter(s => !heardSongIds.has(String(s.id)));
-
-    let html = `
-      <div class="stats-summary-header">
-        <div style="font-size:1.2em;">聴いた曲数: ${heardSongIds.size} / ${masterSongs.length}</div>
-        <div style="font-size:0.8em; opacity:0.8;">延べ演奏回数: ${totalSongsHeard}回</div>
-      </div>
-      
-      <h4>🎤 演奏回数ランキング</h4>
-      <div class="stats-card">
-        ${sortedIds.length > 0 ? sortedIds.slice(0, 20).map(sid => `
-          <div class="stat-row">
-            <span class="stat-name">${getSongTitle(sid)}</span>
-            <span class="stat-count"><b>${counts[sid]}</b> 回</span>
-          </div>
-        `).join('') : '<p>データがありません</p>'}
-      </div>
-
-      <h4>🚫 未聴の曲 (${unheardSongs.length})</h4>
-      <div class="stats-card unheard-scroll-container">
-        ${unheardSongs.map(s => `<div style="font-size:0.85em; padding:2px 0;">・${s.title}</div>`).join('')}
-      </div>
-    `;
-    area.innerHTML = html;
-  }
-
-  // --- セトリエディタ ---
+  // --- セトリ編集用 ---
   function openSetlistEditor(liveId) {
     currentLiveId = String(liveId);
     const live = masterLives.find(l => String(l.id) === currentLiveId);
@@ -304,7 +446,6 @@
     let filtered = masterSongs.filter(s => 
       (s.title || "").toLowerCase().includes(query) || (s.ruby || "").toLowerCase().includes(query)
     );
-
     filtered.sort((a,b) => (a.ruby || a.title).localeCompare(b.ruby || b.title, 'ja'));
 
     let lastChar = "";
@@ -313,10 +454,7 @@
       const selIdx = tempSelectedSongs.indexOf(idStr);
       let indexDisplay = "";
       const curChar = (s.ruby || s.title || "#").charAt(0).toUpperCase();
-      if (curChar !== lastChar) {
-        indexDisplay = curChar;
-        lastChar = curChar;
-      }
+      if (curChar !== lastChar) { indexDisplay = curChar; lastChar = curChar; }
 
       return `
         <div class="song-select-item ${selIdx > -1 ? 'selected' : ''}" onclick="toggleSongSelection('${idStr}')">
@@ -345,7 +483,7 @@
     document.getElementById('edit-modal').style.display = 'none';
   }
 
-  // --- 設定（バックアップ） ---
+  // --- 設定（バックアップ・リストア） ---
   function exportBackup() {
     const dataStr = JSON.stringify(userData);
     const blob = new Blob([dataStr], {type: "application/json"});
@@ -356,35 +494,30 @@
     a.click();
   }
 
-  function importBackup() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = e => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = event => {
-        try {
-          const imported = JSON.parse(event.target.result);
-          if (imported.attendedIds) {
-            userData = imported;
-            saveUserData();
-            renderAll();
-            alert("データを復元しました！");
-          }
-        } catch (err) {
-          alert("無効なファイルです。");
+  function importBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = event => {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (imported.attendedIds) {
+          userData = imported;
+          saveUserData();
+          renderAll();
+          alert("復元が完了しました！");
+        } else {
+          alert("データ形式が正しくありません。");
         }
-      };
-      reader.readAsText(file);
+      } catch (err) {
+        alert("ファイルの読み込みに失敗しました。");
+      }
     };
-    input.click();
+    reader.readAsText(file);
   }
 
   init();
 </script>
-
-
 
 
 </body>
