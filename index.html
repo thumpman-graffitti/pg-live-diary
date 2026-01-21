@@ -196,7 +196,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -279,21 +279,26 @@
 
 function renderMasterSongList() {
   const area = document.getElementById('master-song-select-area');
-  const query = document.getElementById('song-filter').value.toLowerCase();
+  const filterInput = document.getElementById('song-filter');
+  const query = filterInput ? filterInput.value.toLowerCase() : "";
   
-  // 1. フィルタリング
-  let filteredSongs = masterSongs.filter(s => 
-    s.title.toLowerCase().includes(query) || (s.ruby && s.ruby.includes(query))
-  );
+  if (!area) return;
 
-  // 2. 50音順ソート（記号 → 英字 → かな の順になります）
-  filteredSongs.sort((a, b) => {
-    const rubyA = a.ruby || "";
-    const rubyB = b.ruby || "";
-    return rubyA.localeCompare(rubyB, 'ja');
+  // 1. フィルタリング
+  let filteredSongs = masterSongs.filter(s => {
+    const title = (s.title || "").toLowerCase();
+    const ruby = (s.ruby || "").toLowerCase();
+    return title.includes(query) || ruby.includes(query);
   });
 
-  let lastIndexChar = ""; // 直前に表示したインデックス文字を保持
+  // 2. 50音順ソート
+  filteredSongs.sort((a, b) => {
+    const valA = a.ruby || a.title || "zzzz"; // ルビもタイトルもない場合は最後に
+    const valB = b.ruby || b.title || "zzzz";
+    return valA.localeCompare(valB, 'ja');
+  });
+
+  let lastIndexChar = ""; 
 
   // 3. 描画
   area.innerHTML = filteredSongs.map(s => {
@@ -301,19 +306,21 @@ function renderMasterSongList() {
     const selectedIndex = tempSelectedSongs.indexOf(songIdStr);
     const isSelected = selectedIndex > -1;
     
-    // インデックス文字の判定（あ, い, う, A, B, 記...）
+    // インデックス文字の判定（ここを徹底的に安全にしました）
     let currentIndexChar = "";
-    const firstChar = s.ruby ? s.ruby.charAt(0) : "#";
+    const baseChar = (s.ruby || s.title || "").charAt(0);
     
-    if (/[ぁ-ん]/.test(firstChar)) {
-      currentIndexChar = firstChar; // かな
-    } else if (/[a-zA-Z]/.test(firstChar)) {
-      currentIndexChar = firstChar.toUpperCase(); // 英字
+    if (!baseChar) {
+      currentIndexChar = "？";
+    } else if (/[ぁ-んァ-ヶ]/.test(baseChar)) {
+      currentIndexChar = baseChar; 
+    } else if (/[a-zA-Z]/.test(baseChar)) {
+      currentIndexChar = baseChar.toUpperCase(); 
     } else {
-      currentIndexChar = "記"; // 記号その他
+      currentIndexChar = "記"; 
     }
 
-    // 前の曲と同じインデックスなら表示しない（スッキリさせるため）
+    // 重複表示を防ぐ
     let displayIndex = "";
     if (currentIndexChar !== lastIndexChar) {
       displayIndex = currentIndexChar;
@@ -323,7 +330,7 @@ function renderMasterSongList() {
     return `
       <div class="song-select-item ${isSelected ? 'selected' : ''}" onclick="toggleSongSelection('${songIdStr}')">
         <div class="song-index-label">${displayIndex}</div>
-        <div class="song-title-text">${s.title}</div>
+        <div class="song-title-text">${s.title || "無題"}</div>
         <div class="check-area">
           ${isSelected ? `<div class="song-number-badge">${selectedIndex + 1}</div>` : '<span style="color:#ddd; font-size:1em;">○</span>'}
         </div>
@@ -331,6 +338,8 @@ function renderMasterSongList() {
     `;
   }).join('');
 }
+
+
 
 
 function toggleTour(event, header) {
