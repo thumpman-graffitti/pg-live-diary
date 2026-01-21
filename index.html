@@ -81,13 +81,25 @@
     .unheard-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
     .unheard-item { font-size: 0.72em; color: #888; padding: 3px 0; border-bottom: 1px solid #f0f0f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .unheard-item::before { content: "• "; color: #ccc; }
+
+  
+.yearly-chart-container { display: flex; flex-direction: column; gap: 4px; margin-top: 5px; }
+.chart-row { display: flex; align-items: center; gap: 8px; height: 18px; }
+.chart-year { font-size: 0.7em; font-family: monospace; color: #666; width: 35px; }
+.chart-bar-area { flex: 1; background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden; }
+.chart-bar { background: var(--primary); height: 100%; border-radius: 4px; }
+.chart-count { font-size: 0.7em; font-weight: bold; color: var(--primary); width: 30px; text-align: right; }
+
+
+
+
   </style>
 
 
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -405,9 +417,9 @@ function togglePrefStats() {
   renderMyStats();
 }
 
-
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
+  const currentYear = new Date().getFullYear();
   
   // --- 1. 曲の分析 ---
   const songAnalysis = {};
@@ -426,9 +438,13 @@ function renderMyStats() {
   });
   const sortedSongs = Object.entries(songAnalysis).sort((a,b) => b[1].count - a[1].count);
 
-  // --- 2. 都道府県の分析 ---
+  // --- 2. 都道府県 & 年別グラフの分析 ---
   const prefAnalysis = {};
+  const yearlyCounts = {};
+  for (let y = 1999; y <= currentYear; y++) { yearlyCounts[y] = 0; }
+
   myLives.forEach(l => {
+    // 都道府県集計
     const p = l.pref || l.prefecture || l.area;
     if (p) {
       if (!prefAnalysis[p]) prefAnalysis[p] = { count: 0, lastDate: "", lastLiveName: "", lastVenue: "" };
@@ -439,16 +455,23 @@ function renderMyStats() {
         prefAnalysis[p].lastVenue = l.venue;
       }
     }
+    // 年別集計
+    const year = l.date.substring(0, 4);
+    if (yearlyCounts[year] !== undefined) yearlyCounts[year]++;
   });
-  const sortedPrefs = Object.entries(prefAnalysis).sort((a,b) => b[1] - a[1]);
+
+  const sortedPrefs = Object.entries(prefAnalysis).sort((a,b) => b[1].count - a[1].count);
+  const maxYearlyCount = Math.max(...Object.values(yearlyCounts), 1);
+
+  // 制覇率の計算
+  const visitedCount = Object.keys(prefAnalysis).length;
+  const conquestRate = Math.floor((visitedCount / 47) * 100);
 
   const heardSongIds = Object.keys(songAnalysis);
   const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
 
-  // 個別の表示制限を適用
   const songLimit = isSongStatsFull ? undefined : 10;
   const prefLimit = isPrefStatsFull ? undefined : 10;
-  
   const songsToShow = sortedSongs.slice(0, songLimit);
   const prefsToShow = sortedPrefs.slice(0, prefLimit);
 
@@ -470,7 +493,7 @@ function renderMyStats() {
             </div>
             <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
           </div>
-        `).join('') || '<p class="empty-msg">データなし</p>'}
+        `).join('')}
       </div>
     </div>`;
 
@@ -478,21 +501,46 @@ function renderMyStats() {
     html += `<button class="btn-more" onclick="toggleSongStats()">${isSongStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
   }
 
-  // ② 未遭遇曲一覧
+  // ② 未遭遇曲
   html += `
     <div class="stats-card">
       <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
       <div class="unheard-scroll-container">
         <div class="unheard-list">
-          ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('') || '<span>コンプリート！</span>'}
+          ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
         </div>
       </div>
     </div>`;
 
-  // ③ 都道府県ランキング
+  // --- ③ 【ここに追加】年別参戦グラフ ---
   html += `
     <div class="stats-card" style="margin-top:20px;">
-      <h5>🗺️ 都道府県ランキング ${!isPrefStatsFull ? '(TOP10)' : '(全件)'}</h5>
+      <h5>📅 参戦年表 (1999 - ${currentYear})</h5>
+      <div class="yearly-chart-container">
+        ${Object.entries(yearlyCounts).reverse().map(([year, count]) => {
+          if (count === 0) return ''; // 参戦なしの年は表示しない
+          const width = (count / maxYearlyCount) * 100;
+          return `
+            <div class="chart-row">
+              <span class="chart-year">${year}</span>
+              <div class="chart-bar-area"><div class="chart-bar" style="width: ${width}%"></div></div>
+              <span class="chart-count">${count}回</span>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  // --- ④ 都道府県スタンプラリー ---
+  html += `
+    <div class="stats-card" style="margin-top:10px; background: #fff9f9; border: 1px solid var(--primary);">
+      <h5>🗺️ 47都道府県スタンプラリー</h5>
+      <div style="display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 5px;">
+        <b>制覇率: ${conquestRate}%</b>
+        <span>あと <b>${47 - visitedCount}</b> 県</span>
+      </div>
+      <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 12px;">
+        <div style="background: var(--primary); width: ${conquestRate}%; height: 100%;"></div>
+      </div>
       <div class="stats-list">
         ${prefsToShow.map(([pref, data], i) => `
           <div class="stat-row-group">
@@ -503,7 +551,7 @@ function renderMyStats() {
             </div>
             <div class="stat-last-date">Last: ${data.lastDate.substring(2).replace(/-/g,'/')} ${data.lastLiveName} @${data.lastVenue}</div>
           </div>
-        `).join('') || '<p class="empty-msg">データなし</p>'}
+        `).join('')}
       </div>
     </div>`;
 
@@ -513,7 +561,6 @@ function renderMyStats() {
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
-
 
 
 
