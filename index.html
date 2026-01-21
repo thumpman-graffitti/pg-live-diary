@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary3</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -135,7 +135,6 @@
     renderMyStats();
   }
 
-
   function renderMasterList() {
     const container = document.getElementById('master-live-list');
     const years = {};
@@ -180,35 +179,23 @@
     `).join('');
   }
 
-  // --- 新しく追加・修正する関数 ---
-
+  // --- 修正：アコーディオン開閉関数 ---
   function toggleTour(event, header) {
-    // もしボタンなどの子要素をクリックしていたら何もしない
-    if (event.target !== event.currentTarget && event.target.tagName === 'BUTTON') return;
-    header.nextElementSibling.classList.toggle('open');
+    // ボタンや、ボタンの中の文字(event.target)がクリックされた場合は開閉しない
+    if (event.target.closest('button')) return;
+    
+    const body = header.nextElementSibling;
+    body.classList.toggle('open');
   }
 
+  // --- 修正：参戦ボタンクリック時 ---
   function handleToggleAttend(event, id) {
-    // 1. 親要素へのイベント伝播を完全にブロック
-    if (event.stopPropagation) {
-      event.stopPropagation();
-    } else {
-      window.event.cancelBubble = true;
-    }
-    
-    // 2. 本来の登録処理を呼び出す
+    // 親要素(tour-header)へのイベント伝播を完全に止める
+    event.stopPropagation();
     toggleAttend(id);
   }
 
-
-  function toggleTour(header) {
-    header.nextElementSibling.classList.toggle('open');
-  }
-
   function toggleAttend(id) {
-    // 伝播を確実に止める
-    if (window.event) window.event.stopPropagation();
-
     if (userData.attendedIds.includes(id)) {
       const live = masterLives.find(l => l.id == id);
       const hasSetlist = userData.customSetlists[id] && userData.customSetlists[id].length > 0;
@@ -329,5 +316,6 @@
 
   init();
 </script>
+
 </body>
 </html>
