@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary5</h1></header>
+<header><h1>🎸 PG Live Diary6</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -155,7 +155,7 @@
           <div class="tour-group">
             <div class="tour-header" onclick="toggleTour(event, this)">
               <span>${title}</span>
-              <span style="font-size:0.7em; color:#999;">▼</span>
+              <span style="font-size:0.7em; color:#999; pointer-events:none;">▼</span>
             </div>
             <div class="tour-body">
               ${years[year][title].map(live => {
@@ -179,30 +179,29 @@
     `).join('');
   }
 
+
   // --- 開閉用関数（ガードを強化） ---
-  // 1. アコーディオン開閉を受け持つ関数
   function toggleTour(event, header) {
-    // 【重要】クリックされた場所が「tour-body（ボタンがあるエリア）」の中だったら、
-    // アコーディオンを閉じる処理をさせずに終了する
-    if (event.target.closest('.tour-body')) {
-      return;
-    }
-    
-    // ヘッダー部分をクリックした時だけ開閉する
+    // 伝播を止めて、header以外が反応しないようにする
+    event.stopPropagation();
     const body = header.nextElementSibling;
     body.classList.toggle('open');
   }
 
+
+
   // 2. 登録ボタン（＋や✅）を押した時に動く関数
   function handleToggleAttend(event, id) {
-    // 親要素へのクリック伝達を止める（念のため）
-    if (event && event.stopPropagation) {
+    // 全方向のイベント伝播を停止
+    if (event) {
       event.stopPropagation();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
     }
     
-    // 実際の登録処理（チェックを付けたり外したり）を実行
     toggleAttend(id);
   }
+
+
 
 
 
