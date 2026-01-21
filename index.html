@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary6</h1></header>
+<header><h1>🎸 PG Live Diary7</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -135,49 +135,53 @@
     renderMyStats();
   }
 
-  function renderMasterList() {
-    const container = document.getElementById('master-live-list');
-    const years = {};
 
-    masterLives.forEach(l => {
-      const year = l.date.substring(0, 4);
-      if (!years[year]) years[year] = {};
-      if (!years[year][l.title]) years[year][l.title] = [];
-      years[year][l.title].push(l);
-    });
+function renderMasterList() {
+  const container = document.getElementById('master-live-list');
+  const years = {};
 
-    const sortedYears = Object.keys(years).sort((a, b) => b - a);
+  masterLives.forEach(l => {
+    const year = l.date.substring(0, 4);
+    if (!years[year]) years[year] = {};
+    if (!years[year][l.title]) years[year][l.title] = [];
+    years[year][l.title].push(l);
+  });
 
-    container.innerHTML = sortedYears.map(year => `
-      <div class="year-section">
-        <div class="year-label">${year}年</div>
-        ${Object.keys(years[year]).map(title => `
-          <div class="tour-group">
-            <div class="tour-header" onclick="toggleTour(event, this)">
-              <span>${title}</span>
-              <span style="font-size:0.7em; color:#999; pointer-events:none;">▼</span>
-            </div>
-            <div class="tour-body">
-              ${years[year][title].map(live => {
-                const isAttended = userData.attendedIds.includes(live.id);
-                return `
-                  <div class="card">
-                    <div class="live-info">
-                      <span class="live-date">${live.date.substring(5).replace('-', '/')}</span>
-                      <span>${live.venue}</span>
-                    </div>
-                    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" 
-                            onclick="handleToggleAttend(event, '${live.id}')">
-                      ${isAttended ? '✅' : '＋'}
-                    </button>
-                  </div>`;
-              }).join('')}
-            </div>
+  const sortedYears = Object.keys(years).sort((a, b) => b - a);
+
+  container.innerHTML = sortedYears.map(year => `
+    <div class="year-section">
+      <div class="year-label">${year}年</div>
+      ${Object.keys(years[year]).map(title => `
+        <div class="tour-group">
+          <div class="tour-header" onclick="toggleTour(event, this)">
+            <span>${title}</span>
+            <span style="font-size:0.7em; color:#999; pointer-events:none;">▼</span>
           </div>
-        `).join('')}
-      </div>
-    `).join('');
-  }
+          <div class="tour-body">
+            ${years[year][title].map(live => {
+              const isAttended = userData.attendedIds.includes(live.id);
+              return `
+                <div class="card">
+                  <div class="live-info">
+                    <span class="live-date">${live.date.substring(5).replace('-', '/')}</span>
+                    <span>${live.venue}</span>
+                  </div>
+                  <button class="btn-mini js-attend-btn ${isAttended ? 'btn-del' : 'btn-add'}" 
+                          data-id="${live.id}">
+                    ${isAttended ? '✅' : '＋'}
+                  </button>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  // 描画した直後に、ボタンに直接イベントを設定する
+  attachButtonEvents();
+}
 
 
   // --- 開閉用関数（ガードを強化） ---
@@ -189,20 +193,31 @@
   }
 
 
+// ボタンに直接「アコーディオンを無視する」設定を流し込む
+function attachButtonEvents() {
+  const btns = document.querySelectorAll('.js-attend-btn');
+  btns.forEach(btn => {
+    btn.onclick = function(e) {
+      // 1. 親へのイベント伝達を徹底的に拒否
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      const liveId = this.getAttribute('data-id');
+      toggleAttend(liveId);
+      
+      // 2. この関数の戻り値を false にすることでブラウザの連鎖を止める
+      return false;
+    };
+  });
+}
 
-  // 2. 登録ボタン（＋や✅）を押した時に動く関数
-  function handleToggleAttend(event, id) {
-    // 全方向のイベント伝播を停止
-    if (event) {
-      event.stopPropagation();
-      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-    }
-    
-    toggleAttend(id);
-  }
-
-
-
+// こちらの関数もこれだけに簡略化
+function handleToggleAttend(event, id) {
+  // HTML側から呼ばれることはなくなりますが、定義だけ残しておきます
+  if (event) event.stopPropagation();
+  toggleAttend(id);
+}
 
 
   function toggleAttend(id) {
