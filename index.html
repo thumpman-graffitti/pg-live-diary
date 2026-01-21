@@ -130,6 +130,32 @@
   border-top: 1px solid #eee;
 }
 
+/* 追加：モーダル内のヘッダーを固定するための設定 */
+.editor-header-sticky {
+  position: sticky;
+  top: -20px;
+  background: white;
+  z-index: 100;
+  padding: 10px 0;
+  border-bottom: 2px solid #eee;
+}
+
+/* 追加：曲リストのスクロール領域 */
+.setlist-scroll-area {
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 修正：iPhoneでのズーム防止のため input のフォントサイズを 16px 以上に強制 */
+#song-filter {
+  font-size: 16px !important;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
 
 
 
@@ -139,7 +165,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -165,7 +191,8 @@
 </div>
 
 <div id="edit-modal">
-  <div class="modal-content">
+   <div class="modal-content" id="modal-container">
+  
     <h3 id="modal-title"></h3>
     <div id="current-setlist"></div>
     <hr>
@@ -362,7 +389,7 @@ function renderMyHistory() {
           <button class="btn-mini btn-view-setlist" onclick="toggleSetlistDisplay('${l.id}')">
             📊 セトリ ${setlist.length > 0 ? `(${setlist.length})` : ''}
           </button>
-          <button class="btn-mini btn-edit-icon" onclick="openEditModal('${l.id}')">✏️ 編集</button>
+          <button class="btn-mini btn-edit-icon" onclick="openSetlistEditor('${l.id}')">✏️ 編集</button>
         </div>
         <div id="setlist-view-${l.id}" class="setlist-collapse">
           <div class="setlist-content">
