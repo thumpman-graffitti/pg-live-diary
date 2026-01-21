@@ -87,7 +87,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary9</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -392,7 +392,18 @@ function toggleSetlistDisplay(id) {
   }
 
 // 1. 関数の外でこの変数を定義してください（重要！）
-let isStatsFull = false; 
+let isSongStatsFull = false; // 曲ランキング用
+let isPrefStatsFull = false; // 都道府県用
+
+function toggleSongStats() {
+  isSongStatsFull = !isSongStatsFull;
+  renderMyStats();
+}
+
+function togglePrefStats() {
+  isPrefStatsFull = !isPrefStatsFull;
+  renderMyStats();
+}
 
 
 function renderMyStats() {
@@ -434,10 +445,12 @@ function renderMyStats() {
   const heardSongIds = Object.keys(songAnalysis);
   const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
 
-  // 表示制限の適用
-  const displayLimit = isStatsFull ? undefined : 10;
-  const songsToShow = sortedSongs.slice(0, displayLimit);
-  const prefsToShow = sortedPrefs.slice(0, displayLimit);
+  // 個別の表示制限を適用
+  const songLimit = isSongStatsFull ? undefined : 10;
+  const prefLimit = isPrefStatsFull ? undefined : 10;
+  
+  const songsToShow = sortedSongs.slice(0, songLimit);
+  const prefsToShow = sortedPrefs.slice(0, prefLimit);
 
   // --- HTML組み立て ---
   let html = `<div class="stats-summary-header">Total Lives: ${myLives.length}</div>`;
@@ -445,7 +458,7 @@ function renderMyStats() {
   // ① 聴いた曲ランキング
   html += `
     <div class="stats-card">
-      <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
+      <h5>🎵 聴いた曲ランキング ${!isSongStatsFull ? '(TOP10)' : '(全件)'}</h5>
       <p style="font-size:0.7em; color:#999; margin: -5px 0 10px 0;">曲名タップで詳細履歴を表示</p>
       <div class="stats-list">
         ${songsToShow.map(([id, data], i) => `
@@ -461,9 +474,8 @@ function renderMyStats() {
       </div>
     </div>`;
 
-  // 曲ランキング用のボタン
   if (sortedSongs.length > 10) {
-    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
+    html += `<button class="btn-more" onclick="toggleSongStats()">${isSongStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}</button>`;
   }
 
   // ② 未遭遇曲一覧
@@ -480,7 +492,7 @@ function renderMyStats() {
   // ③ 都道府県ランキング
   html += `
     <div class="stats-card" style="margin-top:20px;">
-      <h5>🗺️ 都道府県ランキング ${!isStatsFull ? '(TOP10)' : '(全件)'}</h5>
+      <h5>🗺️ 都道府県ランキング ${!isPrefStatsFull ? '(TOP10)' : '(全件)'}</h5>
       <div class="stats-list">
         ${prefsToShow.map(([pref, data], i) => `
           <div class="stat-row-group">
@@ -495,13 +507,13 @@ function renderMyStats() {
       </div>
     </div>`;
 
-  // 都道府県用のボタン
   if (sortedPrefs.length > 10) {
-    html += `<button class="btn-more" onclick="toggleStatsFull()">${isStatsFull ? '▲ 閉じる' : '▼ 都道府県をもっと見る'}</button>`;
+    html += `<button class="btn-more" onclick="togglePrefStats()">${isPrefStatsFull ? '▲ 閉じる' : '▼ 都道府県をもっと見る'}</button>`;
   }
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
+
 
 
 
@@ -542,14 +554,6 @@ function alertSongHistory(songId) {
   }
 }
 
-
-
-
-// 2. ボタンを押した時に動く関数
-function toggleStatsFull() {
-  isStatsFull = !isStatsFull; // フラグを反転 (true ↔ false)
-  renderMyStats();            // 統計画面を再描画
-}
 
 
   function exportBackup() {
