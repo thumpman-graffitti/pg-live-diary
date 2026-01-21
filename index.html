@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary7</h1></header>
+<header><h1>🎸 PG Live Diary8</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -167,8 +167,9 @@ function renderMasterList() {
                     <span class="live-date">${live.date.substring(5).replace('-', '/')}</span>
                     <span>${live.venue}</span>
                   </div>
-                  <button class="btn-mini js-attend-btn ${isAttended ? 'btn-del' : 'btn-add'}" 
-                          data-id="${live.id}">
+                  <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'} js-attend-btn" 
+                          data-id="${live.id}"
+                          onclick="handleToggleAttend(event, '${live.id}')">
                     ${isAttended ? '✅' : '＋'}
                   </button>
                 </div>`;
@@ -178,19 +179,17 @@ function renderMasterList() {
       `).join('')}
     </div>
   `).join('');
+}
 
-  // 描画した直後に、ボタンに直接イベントを設定する
-  attachButtonEvents();
+function toggleTour(event, header) {
+  // ボタンクリック時は絶対に動かさない
+  if (event.target.closest('button')) return;
+  
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
 }
 
 
-  // --- 開閉用関数（ガードを強化） ---
-  function toggleTour(event, header) {
-    // 伝播を止めて、header以外が反応しないようにする
-    event.stopPropagation();
-    const body = header.nextElementSibling;
-    body.classList.toggle('open');
-  }
 
 
 // ボタンに直接「アコーディオンを無視する」設定を流し込む
@@ -219,29 +218,40 @@ function handleToggleAttend(event, id) {
   toggleAttend(id);
 }
 
+function toggleAttend(id) {
+  // 1. データの更新
+  const index = userData.attendedIds.indexOf(id);
+  if (index > -1) {
+    const live = masterLives.find(l => l.id == id);
+    const hasSetlist = userData.customSetlists[id] && userData.customSetlists[id].length > 0;
+    let message = `「${live.venue}」の参戦登録を解除しますか？`;
+    if (hasSetlist) message += "\n※登録済みのセットリストも削除されます。";
+    
+    if (!confirm(message)) return;
 
-  function toggleAttend(id) {
-    if (userData.attendedIds.includes(id)) {
-      const live = masterLives.find(l => l.id == id);
-      const hasSetlist = userData.customSetlists[id] && userData.customSetlists[id].length > 0;
-      
-      let message = `「${live.venue}」の参戦登録を解除しますか？`;
-      if (hasSetlist) {
-        message += "\n※登録済みのセットリストも削除されます。";
-      }
-
-      if (confirm(message)) {
-        userData.attendedIds = userData.attendedIds.filter(i => i !== id);
-        if (userData.customSetlists[id]) {
-          delete userData.customSetlists[id];
-        }
-        saveUserData();
-      }
-    } else {
-      userData.attendedIds.push(id);
-      saveUserData();
-    }
+    userData.attendedIds.splice(index, 1);
+    delete userData.customSetlists[id];
+  } else {
+    userData.attendedIds.push(id);
   }
+
+  // 2. ローカルストレージに保存（renderAllは呼ばない）
+  localStorage.setItem('pg_user_diary', JSON.stringify(userData));
+
+  // 3. 【重要】画面全体を再描画せず、押したボタンだけを書き換える
+  const btn = document.querySelector(`button[data-id="${id}"]`);
+  if (btn) {
+    const isAttended = userData.attendedIds.includes(id);
+    btn.className = `btn-mini ${isAttended ? 'btn-del' : 'btn-add'} js-attend-btn`;
+    btn.innerHTML = isAttended ? '✅' : '＋';
+  }
+  
+  // 4. 他のタブ（履歴や統計）のデータも裏で更新しておく
+  renderMyHistory();
+  renderMyStats();
+}
+
+
 
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
