@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary4</h1></header>
+<header><h1>🎸 PG Live Diary5</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -180,27 +180,30 @@
   }
 
   // --- 開閉用関数（ガードを強化） ---
+  // 1. アコーディオン開閉を受け持つ関数
   function toggleTour(event, header) {
-    // 1. クリックされた要素がボタン自体、またはボタンの中身(spanや絵文字)なら即座に終了
-    if (event.target.closest('button')) {
-      return; 
+    // 【重要】クリックされた場所が「tour-body（ボタンがあるエリア）」の中だったら、
+    // アコーディオンを閉じる処理をさせずに終了する
+    if (event.target.closest('.tour-body')) {
+      return;
     }
     
-    // 2. それ以外（ヘッダー部分）が押された時だけ開閉
+    // ヘッダー部分をクリックした時だけ開閉する
     const body = header.nextElementSibling;
     body.classList.toggle('open');
   }
 
-  // --- ボタン用関数（伝播停止を強化） ---
+  // 2. 登録ボタン（＋や✅）を押した時に動く関数
   function handleToggleAttend(event, id) {
-    // 親要素へのクリック伝達を完全にシャットアウト
-    if (event) {
+    // 親要素へのクリック伝達を止める（念のため）
+    if (event && event.stopPropagation) {
       event.stopPropagation();
-      event.preventDefault(); // iPhoneの誤動作防止
     }
     
+    // 実際の登録処理（チェックを付けたり外したり）を実行
     toggleAttend(id);
   }
+
 
 
   function toggleAttend(id) {
