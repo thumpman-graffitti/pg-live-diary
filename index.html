@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -135,6 +135,7 @@
     renderMyStats();
   }
 
+
   function renderMasterList() {
     const container = document.getElementById('master-live-list');
     const years = {};
@@ -153,7 +154,7 @@
         <div class="year-label">${year}年</div>
         ${Object.keys(years[year]).map(title => `
           <div class="tour-group">
-            <div class="tour-header" onclick="toggleTour(this)">
+            <div class="tour-header" onclick="toggleTour(event, this)">
               <span>${title}</span>
               <span style="font-size:0.7em; color:#999;">▼</span>
             </div>
@@ -167,7 +168,7 @@
                       <span>${live.venue}</span>
                     </div>
                     <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" 
-                            onclick="event.stopPropagation(); toggleAttend('${live.id}')">
+                            onclick="handleToggleAttend(event, '${live.id}')">
                       ${isAttended ? '✅' : '＋'}
                     </button>
                   </div>`;
@@ -178,6 +179,27 @@
       </div>
     `).join('');
   }
+
+  // --- 新しく追加・修正する関数 ---
+
+  function toggleTour(event, header) {
+    // もしボタンなどの子要素をクリックしていたら何もしない
+    if (event.target !== event.currentTarget && event.target.tagName === 'BUTTON') return;
+    header.nextElementSibling.classList.toggle('open');
+  }
+
+  function handleToggleAttend(event, id) {
+    // 1. 親要素へのイベント伝播を完全にブロック
+    if (event.stopPropagation) {
+      event.stopPropagation();
+    } else {
+      window.event.cancelBubble = true;
+    }
+    
+    // 2. 本来の登録処理を呼び出す
+    toggleAttend(id);
+  }
+
 
   function toggleTour(header) {
     header.nextElementSibling.classList.toggle('open');
