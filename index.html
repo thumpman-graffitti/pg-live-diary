@@ -90,6 +90,46 @@
 .chart-bar { background: var(--primary); height: 100%; border-radius: 4px; }
 .chart-count { font-size: 0.7em; font-weight: bold; color: var(--primary); width: 30px; text-align: right; }
 
+/* チェック形式エディタ専用スタイル */
+.song-select-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 10px; /* 少し広めにして押しやすく */
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* 選択された曲の背景を薄い赤に */
+.song-select-item.selected {
+  background: #fff0f0;
+}
+
+/* 曲名の横に出る番号バッジ */
+.song-number-badge {
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+/* 登録ボタンエリア */
+.editor-footer {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  background: white;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
 
 
 
@@ -99,7 +139,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -352,49 +392,90 @@ function toggleSetlistDisplay(id) {
     return s ? s.title : "不明な曲";
   }
 
-  function openEditModal(liveId) {
-    editingLiveId = liveId;
-    const live = masterLives.find(l => l.id == liveId);
-    document.getElementById('modal-title').textContent = live.date + " セトリ";
-    renderCurrentSetlist();
-    document.getElementById('edit-modal').style.display = 'block';
-  }
 
-  function renderCurrentSetlist() {
-    const list = userData.customSetlists[editingLiveId] || [];
-    document.getElementById('current-setlist').innerHTML = list.map((songId, index) => `
-      <div class="song-item">
-        <span>${index+1}. ${getSongTitle(songId)}</span>
-        <button onclick="removeSong(${index})" style="color:red; border:none; background:none;">削除</button>
+
+let tempSelectedSongs = []; // 編集中の選択順を一時保存
+
+// 1. エディタを開く
+function openSetlistEditor(liveId) {
+  const live = masterLives.find(l => String(l.id) === String(liveId));
+  // 既存のセトリがあれば読み込み、なければ空
+  tempSelectedSongs = userData.customSetlists[liveId] ? [...userData.customSetlists[liveId]] : [];
+
+  const container = document.getElementById('modal-container');
+  container.innerHTML = `
+    <div class="editor-header-sticky">
+      <div style="display:flex; justify-content:space-between; align-items:start;">
+        <h4 style="margin:0; font-size:1.1em;">セトリ登録: ${live.title}</h4>
+        <button onclick="closeModal()" style="border:none; background:none; font-size:1.5em;">&times;</button>
       </div>
-    `).join('') || "未登録";
-  }
-
-  function searchSongs(query) {
-    const results = document.getElementById('search-results');
-    if (!query) { results.innerHTML = ""; return; }
-    const filtered = masterSongs.filter(s => s.title.includes(query)).slice(0, 10);
-    results.innerHTML = filtered.map(s => `
-      <div class="song-item" onclick="addSong('${s.id}')" style="cursor:pointer; background:#f9f9f9; margin-top:2px;">
-        <span>${s.title}</span> <span style="color:blue;">＋</span>
+      <p style="font-size:0.7em; color:#e60012; margin: 5px 0; font-weight:bold;">タップした順に曲順が決定します</p>
+      <input type="text" id="song-filter" placeholder="曲名を絞り込み..." oninput="renderMasterSongList()" 
+             style="width:100%; padding:12px; border-radius:5px; border:1px solid #ccc; font-size:16px;">
+    </div>
+    
+    <div id="master-song-select-area" class="setlist-scroll-area">
       </div>
-    `).join('');
-  }
+    
+    <div class="editor-footer">
+      <button class="btn-edit" onclick="saveCheckedSetlist('${liveId}')" style="flex:2; margin-top:0; background:var(--primary);">登録する</button>
+      <button class="btn-edit" onclick="closeModal()" style="background:#666; flex:1; margin-top:0;">戻る</button>
+    </div>
+  `;
+  
+  document.getElementById('edit-modal').style.display = 'block';
+  renderMasterSongList();
+}
 
-  function addSong(songId) {
-    if (!userData.customSetlists[editingLiveId]) userData.customSetlists[editingLiveId] = [];
-    userData.customSetlists[editingLiveId].push(songId);
-    renderCurrentSetlist();
-    saveUserData();
-  }
+// 2. 曲リストを描画（絞り込み対応）
+function renderMasterSongList() {
+  const area = document.getElementById('master-song-select-area');
+  const query = document.getElementById('song-filter').value.toLowerCase();
+  
+  area.innerHTML = masterSongs
+    .filter(s => s.title.toLowerCase().includes(query) || (s.ruby && s.ruby.includes(query)))
+    .map(s => {
+      const songIdStr = String(s.id);
+      const selectedIndex = tempSelectedSongs.indexOf(songIdStr);
+      const isSelected = selectedIndex > -1;
+      
+      return `
+        <div class="song-select-item ${isSelected ? 'selected' : ''}" onclick="toggleSongSelection('${songIdStr}')">
+          <span style="font-size:0.95em; flex:1;">${s.title}</span>
+          <div class="check-area">
+            ${isSelected ? `<div class="song-number-badge">${selectedIndex + 1}</div>` : '<span style="color:#ccc; font-size:1.2em;">○</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+}
 
-  function removeSong(index) {
-    userData.customSetlists[editingLiveId].splice(index, 1);
-    renderCurrentSetlist();
-    saveUserData();
+// 3. 曲の選択/解除
+function toggleSongSelection(songId) {
+  const index = tempSelectedSongs.indexOf(songId);
+  if (index > -1) {
+    // 既に選択されていれば解除
+    tempSelectedSongs.splice(index, 1);
+  } else {
+    // 未選択なら最後尾に追加
+    tempSelectedSongs.push(songId);
   }
+  // リスト部分だけ再描画（高速）
+  renderMasterSongList();
+}
 
-  function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
+// 4. 保存して閉じる
+function saveCheckedSetlist(liveId) {
+  userData.customSetlists[liveId] = [...tempSelectedSongs];
+  saveUserData(); // ストレージ保存
+  renderMyHistory(); // 履歴タブの表示更新
+  renderMyStats();   // 統計の更新
+  closeModal();
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
 
   function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
