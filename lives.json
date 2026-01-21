@@ -129,7 +129,12 @@
   { "id": "0128", "date": "2002-10-07", "title": "BITTER SWEET MUSIC BIZ", "venue": "日本武道館", "pref": "東京都" },
   { "id": "0129", "date": "2002-10-08", "title": "BITTER SWEET MUSIC BIZ", "venue": "日本武道館", "pref": "東京都" },
   { "id": "0130", "date": "2002-10-10", "title": "BITTER SWEET MUSIC BIZ", "venue": "日本武道館", "pref": "東京都" },
-  { "id": "0131", "date": "2002-10-11", "title": "BITTER SWEET MUSIC BIZ", "venue": "日本武道館", "pref": "東京都" }
+  { "id": "0131", "date": "2002-10-11", "title": "BITTER SWEET MUSIC BIZ", "venue": "日本武道館", "pref": "東京都" },
+  { "id": "0132", "date": "2002-12-24", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "大阪城ホール", "pref": "大阪府" },
+  { "id": "0133", "date": "2002-12-25", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "大阪城ホール", "pref": "大阪府" },
+  { "id": "0134", "date": "2002-12-30", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "東京体育館", "pref": "東京都" },
+  { "id": "0135", "date": "2002-12-31", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "東京体育館", "pref": "東京都" }
+
 
 
 ]
