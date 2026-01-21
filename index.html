@@ -105,7 +105,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -408,18 +408,27 @@ function toggleSetlistDisplay(id) {
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
   
-  // --- 1. 曲の演奏回数集計 ---
+  // --- 1. 曲の集計 ---
   const songCounts = {};
+  // すべてのセットリストからカウント
   Object.values(userData.customSetlists).forEach(list => {
     list.forEach(id => { songCounts[id] = (songCounts[id] || 0) + 1; });
   });
+
+  // 聴いた曲ランキング (TOP10)
   const sortedSongs = Object.entries(songCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
 
-  // --- 2. 都道府県の参戦回数集計 ---
+  // 聴いていない曲一覧 (マスターにあるが、songCountsに含まれない曲)
+  const heardSongIds = Object.keys(songCounts);
+  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
+
+  // --- 2. 都道府県の集計 ---
   const prefCounts = {};
   myLives.forEach(l => {
-    if (l.pref) {
-      prefCounts[l.pref] = (prefCounts[l.pref] || 0) + 1;
+    // lives.jsonの項目名が 'pref' または 'prefecture' どちらでも動くように判定
+    const p = l.pref || l.prefecture || l.area; 
+    if (p) {
+      prefCounts[p] = (prefCounts[p] || 0) + 1;
     }
   });
   const sortedPrefs = Object.entries(prefCounts).sort((a,b) => b[1] - a[1]);
@@ -427,38 +436,50 @@ function renderMyStats() {
   // --- 3. HTMLの組み立て ---
   let html = `<h4>📊 参戦統計</h4>`;
 
-  // 都道府県ランキング表示
+  // ① 聴いた曲ランキング
   html += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #ddd;">
-            <h5 style="margin-top:0; color:var(--primary);">🗺️ 都道府県ランキング</h5>`;
-  if (sortedPrefs.length > 0) {
-    html += sortedPrefs.map(([pref, count]) => `
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
-        <span>${pref}</span>
-        <span style="font-weight:bold;">${count}回</span>
-      </div>
-    `).join('');
-  } else {
-    html += `<div style="color:#999; font-size:0.8em;">データがありません</div>`;
-  }
-  html += `</div>`;
-
-  // 曲ランキング表示
-  html += `<div style="background:white; padding:15px; border-radius:10px; border:1px solid #ddd;">
-            <h5 style="margin-top:0; color:var(--primary);">🎵 曲別・生演奏遭遇数 (TOP10)</h5>`;
+            <h5 style="margin-top:0; color:var(--primary);">🎵 聴いた曲ランキング (TOP10)</h5>`;
   if (sortedSongs.length > 0) {
     html += sortedSongs.map(([id, count]) => `
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em; border-bottom:1px solid #eee;">
         <span>${getSongTitle(id)}</span>
         <span style="font-weight:bold;">${count}回</span>
       </div>
     `).join('');
   } else {
-    html += `<div style="color:#999; font-size:0.8em;">セトリを入力すると集計されます</div>`;
+    html += `<div style="color:#999; font-size:0.8em;">セトリを登録してください</div>`;
+  }
+  html += `</div>`;
+
+  // ② 聴いていない曲一覧
+  html += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #ddd;">
+            <h5 style="margin-top:0; color:#666;">🤐 まだ聴いていない曲 (${unHeardSongs.length})</h5>
+            <div style="font-size:0.85em; color:#888; display:flex; flex-wrap:wrap; gap:5px;">`;
+  if (unHeardSongs.length > 0) {
+    html += unHeardSongs.map(s => `<span>${s.title}</span>`).join(' / ');
+  } else {
+    html += `<span>全曲コンプリート！</span>`;
+  }
+  html += `</div></div>`;
+
+  // ③ 都道府県ランキング
+  html += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #ddd;">
+            <h5 style="margin-top:0; color:var(--primary);">🗺️ 都道府県ランキング</h5>`;
+  if (sortedPrefs.length > 0) {
+    html += sortedPrefs.map(([pref, count]) => `
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em; border-bottom:1px dotted #ccc;">
+        <span>${pref}</span>
+        <span style="font-weight:bold;">${count}回</span>
+      </div>
+    `).join('');
+  } else {
+    html += `<div style="color:#999; font-size:0.8em;">都道府県データが見つかりません。JSONの項目名を確認してください。</div>`;
   }
   html += `</div>`;
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
+
 
 
   function exportBackup() {
