@@ -133,8 +133,21 @@
   { "id": "0132", "date": "2002-12-24", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "大阪城ホール", "pref": "大阪府" },
   { "id": "0133", "date": "2002-12-25", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "大阪城ホール", "pref": "大阪府" },
   { "id": "0134", "date": "2002-12-30", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "東京体育館", "pref": "東京都" },
-  { "id": "0135", "date": "2002-12-31", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "東京体育館", "pref": "東京都" }
-
+  { "id": "0135", "date": "2002-12-31", "title": "<s>BITTER</s> SWEET MUSIC <s>BIZ</s>", "venue": "東京体育館", "pref": "東京都" },
+  { "id": "0136", "date": "2003-06-15", "title": "FANCLUB UNDERWORLD", "venue": "広島クラブクアトロ (昼公演)", "pref": "広島県" },
+  { "id": "0137", "date": "2003-06-15", "title": "FANCLUB UNDERWORLD", "venue": "広島クラブクアトロ (夜公演)", "pref": "広島県" },
+  { "id": "0138", "date": "2003-06-21", "title": "FANCLUB UNDERWORLD", "venue": "Zepp Fukuoka", "pref": "福岡県" },
+  { "id": "0139", "date": "2003-06-22", "title": "FANCLUB UNDERWORLD", "venue": "EBC Vivit Hall (昼公演)", "pref": "愛媛県" },
+  { "id": "0140", "date": "2003-06-22", "title": "FANCLUB UNDERWORLD", "venue": "EBC Vivit Hall (夜公演)", "pref": "愛媛県" },
+  { "id": "0141", "date": "2003-06-25", "title": "FANCLUB UNDERWORLD", "venue": "Zepp Sapporo", "pref": "北海道" },
+  { "id": "0142", "date": "2003-06-29", "title": "FANCLUB UNDERWORLD", "venue": "なんばHatch (昼公演)", "pref": "大阪府" },
+  { "id": "0143", "date": "2003-06-29", "title": "FANCLUB UNDERWORLD", "venue": "なんばHatch (夜公演)", "pref": "大阪府" },
+  { "id": "0144", "date": "2003-06-30", "title": "FANCLUB UNDERWORLD", "venue": "名古屋 Diamond Hall (昼公演)", "pref": "愛知県" },
+  { "id": "0145", "date": "2003-06-30", "title": "FANCLUB UNDERWORLD", "venue": "名古屋 Diamond Hall (夜公演)", "pref": "愛知県" },
+  { "id": "0146", "date": "2003-07-05", "title": "FANCLUB UNDERWORLD", "venue": "NIIGATA LOTS", "pref": "新潟県" },
+  { "id": "0147", "date": "2003-07-06", "title": "FANCLUB UNDERWORLD", "venue": "Zepp Sendai", "pref": "宮城県" },
+  { "id": "0148", "date": "2003-07-12", "title": "FANCLUB UNDERWORLD", "venue": "Zepp Tokyo (昼公演)", "pref": "東京都" },
+  { "id": "0149", "date": "2003-07-12", "title": "FANCLUB UNDERWORLD", "venue": "Zepp Tokyo (夜公演)", "pref": "東京都" }
 
 
 ]
