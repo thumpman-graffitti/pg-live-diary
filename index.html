@@ -101,11 +101,114 @@
 .setlist-collapse.open {
   display: block;
 }        
-  </style>
+
+
+/* --- 統計ページ用デザイン --- */
+.stats-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+}
+
+.stats-card h5 {
+  margin: 0 0 12px 0;
+  color: var(--primary);
+  border-bottom: 2px solid #f4f4f4;
+  padding-bottom: 6px;
+  font-size: 0.95em;
+}
+
+/* ランキングの行 */
+.stat-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f9f9f9;
+  font-size: 0.9em;
+}
+
+.stat-rank {
+  width: 30px;
+  font-size: 0.8em;
+  color: #aaa;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.stat-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.stat-count {
+  color: var(--primary);
+  min-width: 40px;
+  text-align: right;
+  font-weight: bold;
+}
+
+/* もっと見るボタン */
+.btn-more {
+  width: 100%;
+  padding: 12px;
+  background: #eee;
+  border: none;
+  border-radius: 8px;
+  color: #666;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px 0 25px 0;
+}
+
+.btn-more:active {
+  background: #ddd;
+}
+
+/* 未遭遇曲のスクロール枠 */
+.unheard-scroll-container {
+  max-height: 180px; /* iPhoneで長くなりすぎない高さ */
+  overflow-y: auto;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  padding: 10px;
+}
+
+.unheard-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2列 */
+  gap: 4px 15px;
+}
+
+.unheard-item {
+  font-size: 0.75em;
+  color: #888;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unheard-item::before {
+  content: "• ";
+  color: #ccc;
+}
+
+          
+                    
+                              
+                                        
+</style>
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary3</h1></header>
+<header><h1>🎸 PG Live Diary4</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -415,6 +518,8 @@ function renderMyStats() {
   });
 
   const sortedSongs = Object.entries(songCounts).sort((a,b) => b[1] - a[1]);
+  const heardSongIds = Object.keys(songCounts);
+  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
   
   const prefCounts = {};
   myLives.forEach(l => {
@@ -423,54 +528,61 @@ function renderMyStats() {
   });
   const sortedPrefs = Object.entries(prefCounts).sort((a,b) => b[1] - a[1]);
 
-  const heardSongIds = Object.keys(songCounts);
-  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
-
   const displayLimit = isStatsFull ? undefined : 20;
   const songsToShow = sortedSongs.slice(0, displayLimit);
   const prefsToShow = sortedPrefs.slice(0, displayLimit);
 
   let html = `<h4>📊 参戦統計</h4>`;
 
-  // --- ① 聴いた曲ランキング (TOP20) ---
+  // ① 聴いた曲ランキング
   html += `
     <div class="stats-card">
       <h5>🎵 聴いた曲ランキング ${!isStatsFull ? '(TOP20)' : '(全件)'}</h5>
       <div class="stats-list">
-        ${songsToShow.map(([id, count]) => `
-          <div class="stat-row"><span>${getSongTitle(id)}</span><b>${count}回</b></div>
+        ${songsToShow.map(([id, count], i) => `
+          <div class="stat-row">
+            <span class="stat-rank">${i + 1}</span>
+            <span class="stat-name">${getSongTitle(id)}</span>
+            <b class="stat-count">${count}回</b>
+          </div>
         `).join('') || '<p class="empty-msg">データなし</p>'}
       </div>
     </div>`;
 
-  // --- ② 聴いていない曲一覧 (曲情報をここに集約) ---
-  html += `
-    <div class="stats-card">
-      <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
-      <div class="unheard-list">
-        ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('') || '<span>全曲コンプリート！</span>'}
-      </div>
-    </div>`;
-
-  // --- ③ 都道府県ランキング ---
-  html += `
-    <div class="stats-card">
-      <h5>🗺️ 都道府県ランキング ${!isStatsFull ? '(TOP20)' : '(全件)'}</h5>
-      <div class="stats-list">
-        ${prefsToShow.map(([pref, count]) => `
-          <div class="stat-row"><span>${pref}</span><b>${count}回</b></div>
-        `).join('') || '<p class="empty-msg">データなし</p>'}
-      </div>
-    </div>`;
-
-  // もっと見るボタン (曲ランキング or 都道府県が20件以上ある場合のみ)
-  if (sortedSongs.length > 20 || sortedPrefs.length > 20) {
+  // 曲ランキングが20件以上ある場合、ここに「もっと見る」を配置
+  if (sortedSongs.length > 20) {
     html += `
       <button class="btn-more" onclick="toggleStatsFull()">
-        ${isStatsFull ? '▲ 閉じる' : '▼ もっと見る'}
+        ${isStatsFull ? '▲ 閉じる' : '▼ 曲をもっと見る'}
       </button>
     `;
   }
+
+  // ② 未遭遇曲一覧（高さを制限してスクロール可能に）
+  html += `
+    <div class="stats-card">
+      <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
+      <div class="unheard-scroll-container">
+        <div class="unheard-list">
+          ${unHeardSongs.map(s => `<div class="unheard-item">${s.title}</div>`).join('') || '<span>全曲コンプリート！</span>'}
+        </div>
+      </div>
+    </div>`;
+
+  // ③ 都道府県ランキング
+  html += `
+    <div class="stats-card" style="margin-top:20px;">
+      <h5>🗺️ 都道府県ランキング ${!isStatsFull ? '(TOP20)' : '(全件)'}</h5>
+      <div class="stats-list">
+        ${prefsToShow.map(([pref, count], i) => `
+          <div class="stat-row">
+            <span class="stat-rank">${i + 1}</span>
+            <span class="stat-name">${pref}</span>
+            <b class="stat-count">${count}回</b>
+          </div>
+        `).join('') || '<p class="empty-msg">データなし</p>'}
+      </div>
+    </div>`;
 
   document.getElementById('my-stats-area').innerHTML = html;
 }
