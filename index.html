@@ -208,7 +208,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary4</h1></header>
+<header><h1>🎸 PG Live Diary5</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -507,8 +507,8 @@ function toggleSetlistDisplay(id) {
     document.getElementById('nav-' + tabId).classList.add('active');
   }
 
-
-let isStatsFull = false;
+// 1. 関数の外でこの変数を定義してください（重要！）
+let isStatsFull = false; 
 
 function renderMyStats() {
   const myLives = masterLives.filter(l => userData.attendedIds.includes(l.id));
@@ -518,8 +518,6 @@ function renderMyStats() {
   });
 
   const sortedSongs = Object.entries(songCounts).sort((a,b) => b[1] - a[1]);
-  const heardSongIds = Object.keys(songCounts);
-  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
   
   const prefCounts = {};
   myLives.forEach(l => {
@@ -528,6 +526,10 @@ function renderMyStats() {
   });
   const sortedPrefs = Object.entries(prefCounts).sort((a,b) => b[1] - a[1]);
 
+  const heardSongIds = Object.keys(songCounts);
+  const unHeardSongs = masterSongs.filter(s => !heardSongIds.includes(String(s.id)));
+
+  // 表示件数の決定
   const displayLimit = isStatsFull ? undefined : 20;
   const songsToShow = sortedSongs.slice(0, displayLimit);
   const prefsToShow = sortedPrefs.slice(0, displayLimit);
@@ -549,7 +551,7 @@ function renderMyStats() {
       </div>
     </div>`;
 
-  // 曲ランキングが20件以上ある場合、ここに「もっと見る」を配置
+  // 曲が20件以上ある場合のみボタンを表示
   if (sortedSongs.length > 20) {
     html += `
       <button class="btn-more" onclick="toggleStatsFull()">
@@ -558,7 +560,7 @@ function renderMyStats() {
     `;
   }
 
-  // ② 未遭遇曲一覧（高さを制限してスクロール可能に）
+  // ② 未遭遇曲一覧
   html += `
     <div class="stats-card">
       <h5 style="color:#666;">🤐 未遭遇の曲 (${unHeardSongs.length})</h5>
@@ -585,6 +587,12 @@ function renderMyStats() {
     </div>`;
 
   document.getElementById('my-stats-area').innerHTML = html;
+}
+
+// 2. ボタンを押した時に動く関数
+function toggleStatsFull() {
+  isStatsFull = !isStatsFull; // フラグを反転 (true ↔ false)
+  renderMyStats();            // 統計画面を再描画
 }
 
 
