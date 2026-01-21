@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary3</h1></header>
+<header><h1>🎸 PG Live Diary4</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -179,21 +179,29 @@
     `).join('');
   }
 
-  // --- 修正：アコーディオン開閉関数 ---
+  // --- 開閉用関数（ガードを強化） ---
   function toggleTour(event, header) {
-    // ボタンや、ボタンの中の文字(event.target)がクリックされた場合は開閉しない
-    if (event.target.closest('button')) return;
+    // 1. クリックされた要素がボタン自体、またはボタンの中身(spanや絵文字)なら即座に終了
+    if (event.target.closest('button')) {
+      return; 
+    }
     
+    // 2. それ以外（ヘッダー部分）が押された時だけ開閉
     const body = header.nextElementSibling;
     body.classList.toggle('open');
   }
 
-  // --- 修正：参戦ボタンクリック時 ---
+  // --- ボタン用関数（伝播停止を強化） ---
   function handleToggleAttend(event, id) {
-    // 親要素(tour-header)へのイベント伝播を完全に止める
-    event.stopPropagation();
+    // 親要素へのクリック伝達を完全にシャットアウト
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault(); // iPhoneの誤動作防止
+    }
+    
     toggleAttend(id);
   }
+
 
   function toggleAttend(id) {
     if (userData.attendedIds.includes(id)) {
