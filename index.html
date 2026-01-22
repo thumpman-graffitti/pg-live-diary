@@ -69,29 +69,31 @@
 /* 統計用：未聴曲のグリッド表示 */
 .unheard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2列を維持 */
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  max-height: 400px; /* ここを大きくしました */
+  /* JavaScript側の 60vh が優先されますが、念のためこちらでも設定 */
+  max-height: 60vh; 
   overflow-y: auto;
-  padding: 10px;
+  padding: 12px;
   background: #fdfdfd;
   border: 1px solid #eee;
-  border-radius: 8px;
-  /* スクロールを滑らかにする */
-  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch; /* iPhoneでのスクロールをヌルヌルにする */
 }
 
 .unheard-item {
   background: white;
-  border: 1px solid #f0f0f0;
-  border-radius: 6px;
-  color: #333;
-  /* 文字が長い場合に備えて */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  /* 1曲の高さもしっかり確保 */
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
+
 
 
 .setting-item {
@@ -483,13 +485,13 @@ function renderMyStats() {
       </div>`;
   }).join('');
 
-// --- B. 未聴曲リスト (スマホ1画面分に近いサイズへ拡大) ---
+// --- B. 未聴曲リスト (画面高さに合わせて可変にする) ---
 const heardIds = new Set(Object.keys(songCounts).map(String));
 const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
 document.getElementById('stats-unheard-list').innerHTML = `
   <div style="font-size:0.9em; margin-bottom:8px; font-weight:bold; color:#444;">未聴: ${unheard.length} 曲</div>
-  <div class="unheard-grid" style="max-height: 400px; grid-template-columns: 1fr 1fr;"> 
-    ${unheard.map(s => `<div class="unheard-item" style="font-size:0.85em; padding:8px;">${s.title}</div>`).join('')}
+  <div class="unheard-grid" style="max-height: 60vh; grid-template-columns: 1fr 1fr;"> 
+    ${unheard.map(s => `<div class="unheard-item" style="font-size:0.85em; padding:10px;">${s.title}</div>`).join('')}
   </div>`;
 
 
