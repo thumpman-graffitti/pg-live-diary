@@ -77,7 +77,7 @@
 .unheard-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
+    gap: 4px !important;
     /* iPhoneの画面の高さに合わせてしっかり確保 */
     height: 450px !important; 
     overflow-y: scroll !important;
@@ -85,20 +85,24 @@
     padding: 5px;
 }
 
+
 .unheard-item {
     background: white;
     border: 1px solid #eee;
-    border-radius: 6px;
-    font-size: 0.8em;
-    padding: 10px 5px;
-    height: 40px;
+    border-radius: 4px; /* 角丸を少しシャープに */
+    font-size: 0.75rem; /* iPhoneで見やすい最小限のサイズ */
+    padding: 2px 4px;   /* 上下の余白を最小限に */
+    height: 28px;       /* 高さを30px以下に圧縮 */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: none;   /* 影を消してスッキリさせる */
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 
 
 .setting-item {
@@ -205,7 +209,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary</h1></header>
+<header><h1>🎸 PG Live Diary2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
