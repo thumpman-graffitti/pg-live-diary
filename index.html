@@ -336,7 +336,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary8</h1></header>
+<header><h1>🎸 PG Live Diary9</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -466,6 +466,7 @@ input[type="file"] {
     document.getElementById('nav-' + tabId).classList.add('active');
   }
 
+  // --- 1. 登録タブ ---
   // --- 1. 探すタブ ---
   function renderMainLiveList() {
     const container = document.getElementById('master-live-list');
@@ -491,23 +492,17 @@ input[type="file"] {
             <div class="tour-body">
               ${livesInTour.map(l => {
                 const isAttended = userData.attendedIds.includes(String(l.id));
-                // --- 修正後の renderMainLiveList 内のループ部分 ---
-
-  // --- renderMainLiveList 内のループ部分 ---
-return `
-  <div class="card">
-    <div class="live-info">
-      <span style="color:#888; font-family:monospace;">${l.date.substring(5).replace('-', '/')}</span>
-      <span style="font-weight:500;">${l.venue}</span>
-    </div>
-    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${l.id}')">
-      ${isAttended ? '✅' : '＋'}
-    </button>
-  </div>`;
-
-  
-  
-                  
+                // 【修正ポイント】onclickに「this」を追加
+                return `
+                  <div class="card">
+                    <div class="live-info">
+                      <span style="color:#888; font-family:monospace;">${l.date.substring(5).replace('-', '/')}</span>
+                      <span style="font-weight:500;">${l.venue}</span>
+                    </div>
+                    <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${l.id}', this)">
+                      ${isAttended ? '✅' : '＋'}
+                    </button>
+                  </div>`;
               }).join('')}
             </div>
           </div>`;
@@ -517,22 +512,36 @@ return `
     container.innerHTML = html;
   }
 
-  function toggleAttend(id) {
+  function toggleAttend(id, btnElement) {
     const idStr = String(id);
     const index = userData.attendedIds.indexOf(idStr);
+    let isNowAttended = false;
+
     if (index > -1) {
-      if (confirm("解除してよろしいですか？（セトリ情報も削除されます）")) {
-        userData.attendedIds.splice(index, 1);
-        delete userData.customSetlists[idStr];
-      }
+      if (!confirm("解除してよろしいですか？（セトリ情報も削除されます）")) return;
+      userData.attendedIds.splice(index, 1);
+      delete userData.customSetlists[idStr];
+      isNowAttended = false;
     } else {
       userData.attendedIds.push(idStr);
+      isNowAttended = true;
     }
+    
     saveUserData();
-    renderAll();
+
+    // 【修正ポイント】リスト全体を再描画せず、ボタンの見た目だけを直接書き換える
+    if (btnElement) {
+      btnElement.className = `btn-mini ${isNowAttended ? 'btn-del' : 'btn-add'}`;
+      btnElement.textContent = isNowAttended ? '✅' : '＋';
+    }
+
+    // 履歴と統計タブの中身は、裏側でこっそり更新しておく
+    renderMyHistory();
+    renderMyStats();
   }
 
-  // --- 2. 履歴タブ ---
+
+
   // --- 2. 履歴タブ ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
