@@ -193,7 +193,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary5</h1></header>
+<header><h1>🎸 PG Live Diary6</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -420,29 +420,31 @@ function renderMyHistory() {
 
   // --- 3. 統計タブ（ご要望の全機能実装） ---
 function renderMyStats() {
+  // --- 参加回数の表示を復活 ---
+  const myLivesCount = userData.attendedIds.length;
+  const totalLivesEl = document.getElementById('stats-total-lives');
+  if (totalLivesEl) {
+    totalLivesEl.textContent = `Total Lives: ${myLivesCount} 回参戦`;
+  }
+
   const songCounts = {};
   const venueCounts = {};
   const yearCounts = {};
   
-  // 1. 年別集計の初期化 (1999年から現在まで)
   const currentYear = new Date().getFullYear();
   for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
 
-  // 2. データの集計
   userData.attendedIds.forEach(liveId => {
     const live = masterLives.find(l => String(l.id) === String(liveId));
     if (!live) return;
 
-    // 年別
     const y = live.date.substring(0, 4);
     if (yearCounts[y] !== undefined) yearCounts[y]++;
 
-    // 会場別
     if (!venueCounts[live.venue]) venueCounts[live.venue] = { count: 0, lives: [] };
     venueCounts[live.venue].count++;
     venueCounts[live.venue].lives.push(live);
 
-    // 曲別
     const setlist = userData.customSetlists[liveId] || [];
     setlist.forEach(sid => {
       if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
@@ -477,11 +479,10 @@ function renderMyStats() {
       </div>`;
   }).join('');
 
-  // --- B. 未聴曲リスト (ここが2列グリッドのロジックです) ---
+  // --- B. 未聴曲リスト (2列グリッド) ---
   const heardIds = new Set(Object.keys(songCounts).map(String));
   const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
   
-  // HTMLに流し込む (CSSで.unheard-gridを指定している前提)
   document.getElementById('stats-unheard-list').innerHTML = `
     <div style="font-size:0.8em; margin-bottom:8px; color:#666;">残り: ${unheard.length} 曲</div>
     <div class="unheard-grid">
@@ -515,12 +516,12 @@ function renderMyStats() {
           <div class="stat-count-badge">${item.count}回</div>
         </div>
         <div class="stat-details-list">
+          <strong>参加履歴:</strong>
           ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
         </div>
       </div>`;
   }).join('');
 
-  // ボタンの表示制御
   document.getElementById('btn-more-songs').style.display = sortedSongs.length > 20 ? 'block' : 'none';
   document.getElementById('btn-more-venues').style.display = sortedVenues.length > 20 ? 'block' : 'none';
 }
