@@ -85,24 +85,27 @@
     padding: 5px;
 }
 
-
 .unheard-item {
     background: white;
     border: 1px solid #eee;
-    border-radius: 4px; /* 角丸を少しシャープに */
-    font-size: 0.75rem; /* iPhoneで見やすい最小限のサイズ */
-    padding: 2px 4px;   /* 上下の余白を最小限に */
-    height: 28px;       /* 高さを30px以下に圧縮 */
+    border-radius: 4px;
+    font-size: 0.7rem;      /* 基本サイズを少し下げて入りやすく */
+    padding: 2px 4px;
+    min-height: 28px;       /* 固定ではなく最小値に */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    box-shadow: none;   /* 影を消してスッキリさせる */
     line-height: 1.1;
-    white-space: nowrap;
+    word-break: break-all;  /* 長い単語でも途中で改行させる */
+    overflow-wrap: break-word; /* 枠からはみ出さないように */
+    /* 文字が多すぎても ... にせず、2行までは見せる */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* 最大2行まで表示 */
     overflow: hidden;
-    text-overflow: ellipsis;
 }
+
 
 
 .setting-item {
@@ -209,7 +212,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary2</h1></header>
+<header><h1>🎸 PG Live Diary3</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -497,15 +500,16 @@ function renderMyStats() {
 // --- B. 未聴曲リスト (親の制限を無視して高さを出す) ---
 const heardIds = new Set(Object.keys(songCounts).map(String));
 const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
+// --- B. 未聴曲リスト (文字数に応じて調整) ---
 document.getElementById('stats-unheard-list').innerHTML = `
-  <div style="font-size:0.9em; margin-bottom:10px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
+  <div style="font-size:0.85em; margin-bottom:6px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
   <div class="unheard-grid"> 
-    ${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
+    ${unheard.map(s => {
+      // 文字数が12文字を超えたらフォントサイズをさらに小さくする
+      const fontSize = s.title.length > 12 ? '0.6rem' : '0.75rem';
+      return `<div class="unheard-item" style="font-size: ${fontSize};">${s.title}</div>`;
+    }).join('')}
   </div>`;
-
-
-
-
 
 
   // --- C. 年別グラフ ---
