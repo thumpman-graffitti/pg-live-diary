@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PG Live Diary</title>
   <style>
-    /* 既存のスタイルをそのまま継承 */
+    /* 既存のスタイル */
     :root { --primary: #e60012; --bg: #f4f4f4; --text: #333; }
     body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; color: var(--text); }
     header { background: #333; color: white; padding: 15px; text-align: center; }
@@ -18,325 +18,67 @@
     .tour-body { display: none; background: #fafafa; }
     .tour-body.open { display: block; }
     
-/* --- 決定版スタイル --- */
+    .card { display: block; background: #fff; padding: 16px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .tour-body .card { display: flex !important; justify-content: space-between; align-items: center; padding: 10px 15px; margin-bottom: 0; border-radius: 0; border: none; border-bottom: 1px solid #eee; box-shadow: none; }
+    .live-info { flex: 1; font-size: 0.9rem; line-height: 1.4; display: flex; gap: 10px; align-items: center; }
+    .btn-mini { border: none; border-radius: 4px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; font-weight: bold; }
 
-/* 1. 基本のカード（履歴・統計・設定・バックアップ用：縦並び） */
-.card { 
-  display: block; 
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* 2. 登録タブのリスト（ここだけ横並びに限定） */
-.tour-body .card {
-  display: flex !important;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  margin-bottom: 0; 
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid #eee;
-  box-shadow: none;
-}
-
-
-/* 4. 共通パーツ */
-.live-info {
-  flex: 1;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.btn-mini { 
-  border: none; 
-  border-radius: 4px; 
-  width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 1rem; flex-shrink: 0;
-  font-weight: bold;
-}
-
-
-
-/* ライブ名と日付のエリア */
-.live-info {
-  flex: 1;
-  font-size: 0.9rem; /* 少しだけ文字を小さくして1行に収まりやすく */
-  line-height: 1.4;
-  display: flex;
-  gap: 10px; /* 日付と会場の間の隙間 */
-}
-
-
-
-/* 設定項目のグループ化 */
-.setting-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.setting-label {
-  font-weight: bold;
-  font-size: 1em;
-  color: #333;
-}
-
-.setting-desc {
-  font-size: 0.85em;
-  color: #666;
-  line-height: 1.4;
-}
-
-/* ボタンを画面幅いっぱいに */
-.btn-setting {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-export { background: #444; color: white; }
-.btn-import-trigger { background: #eee; color: #333; border: 1px solid #ddd; }
-
-/* 未聴曲エリアの親カードの制限を外す */
-#stats-unheard-list {
-    height: auto !important;
-    max-height: none !important;
-    padding: 10px !important;
-}
-
-/* グリッド本体の高さを固定してスクロールさせる */
-.unheard-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 4px !important;
-    /* iPhoneの画面の高さに合わせてしっかり確保 */
-    height: 450px !important; 
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding: 5px;
-}
-
-.unheard-item {
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    font-size: 0.7rem;      /* 基本サイズを少し下げて入りやすく */
-    padding: 2px 4px;
-    min-height: 28px;       /* 固定ではなく最小値に */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    line-height: 1.1;
-    word-break: break-all;  /* 長い単語でも途中で改行させる */
-    overflow-wrap: break-word; /* 枠からはみ出さないように */
-    /* 文字が多すぎても ... にせず、2行までは見せる */
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2; /* 最大2行まで表示 */
-    overflow: hidden;
-}
-
-
-
-.setting-item {
-  margin-bottom: 25px;
-}
-
-
-
-/* ボタンの洗練 */
-.btn-primary {
-  width: 100%;
-  padding: 14px;
-  background: #444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 0.95em;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background 0.2s;
-}
-
-.btn-primary:active {
-  background: #222;
-}
-
-/* ファイル選択のカスタマイズ */
-.file-input-wrapper {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-input[type="file"] {
-  width: 100%;
-  padding: 10px;
-  background: #f8f8f8;
-  border: 1px dashed #ccc;
-  border-radius: 8px;
-  font-size: 0.85em;
-}
-   
-    /* --- 新しく整理したスタイル（ここから） --- */
-    /* 共通カード：履歴・設定・統計用 */
-    .card { 
-      display: block; 
-      background: #fff; 
-      padding: 16px; 
-      border-radius: 12px; 
-      border: 1px solid #eee; 
-      margin-bottom: 16px; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-    }
-
-    /* 登録タブ内のリスト：ここだけ横並びに限定 */
-    .tour-body .card {
-      display: flex !important;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 15px;
-      margin-bottom: 0;
-      border-radius: 0;
-      border: none;
-      border-bottom: 1px solid #eee;
-      box-shadow: none;
-    }
-
-    .live-info { flex: 1; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; }
-    .btn-mini { border: none; border-radius: 4px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    /* 統計用追加・修正スタイル */
+    .stat-ranking-item { background: white; border-bottom: 1px solid #eee; padding: 10px; }
+    .stat-ranking-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .stat-rank-num { font-weight: bold; width: 25px; color: var(--primary); font-size: 0.9em; }
+    .stat-song-info { flex: 1; min-width: 0; padding-right: 10px; }
+    .stat-song-title { font-weight: bold; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    /* 履歴ページ用の個別設定 */
-    .log-date { font-size: 0.8em; color: #888; }
-    .log-title { font-weight: bold; color: var(--primary); }
+    /* 修正：直近情報を1行に収めて省略表示にする */
+    .stat-latest-info { font-size: 0.75em; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .stat-count-badge { background: #eee; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold; flex-shrink: 0; }
+    .stat-details-list { display: none; margin-top: 10px; padding: 10px; border-top: 1px dashed #ddd; background: #fafafa; border-radius: 5px; }
+    .stat-details-list.open { display: block; }
+    .detail-row { font-size: 0.75em; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 4px; color: #555; line-height: 1.3; }
 
-    
-    /* 共通・ボタン色など */
-    .btn-add { background: #eee; color: #666; }
-    .btn-del { background: var(--primary); color: white; }
-    .btn-edit { background: #007bff; color: white; width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; }
-    
-    /* ナビゲーション */
+    /* 閉じるボタン用のスタイル */
+    .btn-show-more, .btn-hide-more { width: 100%; padding: 12px; border: none; margin-top: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.85em; }
+    .btn-show-more { background: #eee; color: #555; }
+    .btn-hide-more { background: #ddd; color: #333; display: none; }
+    .hidden-rank-item { display: none; }
+
+    /* その他既存スタイル（略） */
+    .setting-group { display: flex; flex-direction: column; gap: 8px; }
+    .btn-setting { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-export { background: #444; color: white; }
+    .unheard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 400px; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding: 5px; }
+    .unheard-item { background: white; border: 1px solid #eee; border-radius: 4px; font-size: 0.7rem; padding: 2px 4px; min-height: 28px; display: flex; align-items: center; justify-content: center; text-align: center; }
     nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #ddd; z-index: 100; }
     nav button { flex: 1; padding: 15px; border: none; background: none; font-size: 12px; }
     nav button.active { color: var(--primary); font-weight: bold; }
-    
-    /* モーダル・統計 */
     #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 1000; overflow-y: auto; }
     .modal-content { background: white; margin: 20px auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
-    .setlist-collapse { display: none; background: #fdfdfd; margin-top: 8px; padding: 8px; font-size: 0.85em; border-left: 2px solid #ccc; }
-    .setlist-collapse.open { display: block; }
     .stats-summary-header { background: #333; color: white; text-align: center; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
     .stats-card { background: white; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
-    .unheard-scroll-container { max-height: 150px; overflow-y: auto; background: #fafafa; padding: 8px; }
-    /* --- 新しく整理したスタイル（ここまで） --- */
-
-
-    /* エディタ用追加スタイル */
-    .editor-header-sticky { position: sticky; top: -20px; background: white; z-index: 100; padding-bottom: 10px; border-bottom: 2px solid #eee; }
-    .setlist-scroll-area { max-height: 50vh; overflow-y: auto; margin-top: 10px; }
-    .song-select-item { display: flex; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; }
-    .song-select-item.selected { background: #fff0f0; }
-    .song-index-label { width: 30px; font-size: 0.8em; color: var(--primary); font-weight: bold; }
-    .song-title-text { flex: 1; font-size: 0.9em; }
-    .song-number-badge { background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75em; }
-/* 統計・グラフ用スタイル */
-.stat-ranking-item { background: white; border-bottom: 1px solid #eee; padding: 10px; }
-.stat-ranking-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.stat-rank-num { font-weight: bold; width: 30px; color: var(--primary); }
-.stat-song-info { flex: 1; }
-.stat-song-title { font-weight: bold; font-size: 1em; }
-.stat-latest-info { font-size: 0.75em; color: #888; margin-top: 2px; }
-.stat-count-badge { background: #eee; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold; }
-.stat-details-list { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; background: #fafafa; padding: 10px; border-radius: 5px; }
-.stat-details-list.open { display: block; }
-.detail-row { font-size: 0.8em; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
-
-/* グラフ用 */
-.graph-container { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
-.graph-row { display: flex; align-items: center; margin-bottom: 6px; font-size: 0.8em; }
-.graph-label { width: 40px; text-align: right; margin-right: 8px; color: #555; }
-.graph-bar-area { flex: 1; background: #f0f0f0; height: 16px; border-radius: 4px; overflow: hidden; }
-.graph-bar { height: 100%; background: var(--primary); }
-.graph-val { margin-left: 6px; width: 25px; font-weight: bold; color: #333; }
-
-/* もっと見るボタン */
-.btn-show-more { width: 100%; padding: 10px; background: #eee; border: none; color: #555; margin-top: 10px; cursor: pointer; border-radius: 5px; }
-.hidden-rank-item { display: none; }
-
-/* 履歴ページのボタンエリア：外枠の余白をなくして横に広げる */
-.log-actions { 
-  display: flex; 
-  gap: 10px;          /* ボタン同士の間隔 */
-  margin-top: 12px; 
-  padding-top: 12px; 
-  border-top: 1px dashed #eee; 
-  width: 100%;        /* 親要素に対してフルサイズ */
-}
-
-/* 履歴ページのボタン：横に長く、高さを維持 */
-.btn-log-action {
-  flex: 1;            /* 2つのボタンで画面幅を半分ずつ分け合う */
-  height: 44px;       /* 高さは今のまま */
-  border: none;
-  border-radius: 6px; 
-  font-size: 0.95rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 少し影をつけて押しやすく */
-}
-
-/* セトリボタン：ポルノグラフィティらしいレッド系 */
-.btn-setlist { 
-  background: var(--primary); /* #e60012 */
-  color: white; 
-}
-
-/* 編集ボタン：落ち着いたダークグレー */
-.btn-edit-log { 
-  background: #444; 
-  color: white; 
-}
-
-/* タップした時の反応 */
-.btn-log-action:active {
-  transform: translateY(1px);
-  filter: brightness(0.9);
-}
-
-
-
-    </style>
+    .graph-container { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
+    .graph-row { display: flex; align-items: center; margin-bottom: 6px; font-size: 0.8em; }
+    .graph-label { width: 40px; text-align: right; margin-right: 8px; color: #555; }
+    .graph-bar-area { flex: 1; background: #f0f0f0; height: 16px; border-radius: 4px; overflow: hidden; }
+    .graph-bar { height: 100%; background: var(--primary); }
+    .graph-val { margin-left: 6px; width: 25px; font-weight: bold; color: #333; }
+    .log-actions { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee; width: 100%; }
+    .btn-log-action { flex: 1; height: 44px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+    .btn-setlist { background: var(--primary); color: white; }
+    .btn-edit-log { background: #444; color: white; }
+    .log-title-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .log-date { font-size: 0.8em; color: #888; }
+    .log-title { font-weight: bold; color: var(--primary); }
+    .setlist-collapse { display: none; background: #fdfdfd; margin-top: 8px; padding: 8px; font-size: 0.85em; border-left: 2px solid #ccc; }
+    .setlist-collapse.open { display: block; }
+    .btn-add { background: #eee; color: #666; }
+    .btn-del { background: var(--primary); color: white; }
+  </style>
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary9</h1></header>
+<header><h1>🎸 PG Live Diary v2.2</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -349,72 +91,53 @@ input[type="file"] {
 
 <div id="tab-stats" class="tab-content">
   <h3>マイ統計</h3>
-  
   <div id="stats-total-lives" class="stats-summary-header"></div>
 
   <h4>🎤 聴いた曲ランキング</h4>
   <div id="stats-song-ranking" class="stats-card" style="padding:0; overflow:hidden;"></div>
-  <button id="btn-more-songs" class="btn-show-more" onclick="showMoreRanking('song')">もっと見る (21位以下)</button>
+  <button id="btn-more-songs" class="btn-show-more" onclick="toggleRanking('song', true)">もっと見る (11位以下)</button>
+  <button id="btn-hide-songs" class="btn-hide-more" onclick="toggleRanking('song', false)">ランキングを閉じる</button>
 
   <h4>🚫 まだ聴いていない曲</h4>
-  <div id="stats-unheard-list" class="stats-card unheard-scroll-container"></div>
+  <div id="stats-unheard-list" class="stats-card"></div>
 
-  <h4>📅 年別参加数 (1999〜)</h4>
+  <h4>📅 年別参加数</h4>
   <div id="stats-year-graph" class="graph-container"></div>
 
   <h4>📍 都道府県ランキング</h4>
   <div id="stats-venue-ranking" class="stats-card" style="padding:0; overflow:hidden;"></div>
-  <button id="btn-more-venues" class="btn-show-more" onclick="showMoreRanking('venue')">もっと見る (21位以下)</button>
+  <button id="btn-more-venues" class="btn-show-more" onclick="toggleRanking('venue', true)">もっと見る (11位以下)</button>
+  <button id="btn-hide-venues" class="btn-hide-more" onclick="toggleRanking('venue', false)">ランキングを閉じる</button>
 </div>
 
 <div id="tab-settings" class="tab-content">
-  <h3 style="padding-left:5px;">設定</h3>
-  
+  <h3>設定</h3>
   <div class="card">
     <div class="setting-group">
       <div class="setting-label">📥 データのバックアップ</div>
-      <div class="setting-desc">現在のすべての参戦履歴とセトリをファイルとしてダウンロードします。</div>
-      <button class="btn-setting btn-export" onclick="exportBackup()">
-        バックアップファイルを保存
-      </button>
+      <button class="btn-setting btn-export" onclick="exportBackup()">バックアップ保存</button>
     </div>
-
-    <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
-
+    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
     <div class="setting-group">
-      <div class="setting-label">📤 データの復元 (リストア)</div>
-      <div class="setting-desc">以前保存したバックアップファイルを読み込みます。<br><b style="color:var(--primary);">※現在のデータは上書きされます。</b></div>
-      <input type="file" id="import-file" accept=".json" onchange="importBackup(this)" 
-             style="width:100%; font-size:0.8em; padding:8px; background:#f9f9f9; border-radius:5px; border:1px solid #ddd;">
+      <div class="setting-label">📤 データの復元</div>
+      <input type="file" accept=".json" onchange="importBackup(this)" style="width:100%;">
     </div>
-  </div>
-
-  <div style="text-align:center; color:#bbb; font-size:0.75em; margin-top:40px;">
-    PG Live Diary v2.1
   </div>
 </div>
 
-
-
-
 <div id="edit-modal">
   <div class="modal-content">
-    <div class="editor-header-sticky">
-      <h3 id="modal-live-title" style="margin:0 0 10px 0; font-size:1.1em;"></h3>
-      <input type="text" id="song-filter" placeholder="曲名・ルビで検索..." oninput="renderMasterSongList()">
-    </div>
-    
-    <div id="master-song-select-area" class="setlist-scroll-area">
-      </div>
-
+    <h3 id="modal-live-title"></h3>
+    <input type="text" id="song-filter" placeholder="曲検索..." oninput="renderMasterSongList()" style="width:100%; padding:10px; margin-bottom:10px;">
+    <div id="master-song-select-area" style="max-height:50vh; overflow-y:auto;"></div>
     <div style="margin-top:15px; display:flex; gap:10px;">
-      <button onclick="saveCheckedSetlist()" style="flex:1; padding:12px; background:var(--primary); color:white; border:none; border-radius:5px; font-weight:bold;">保存して閉じる</button>
+      <button onclick="saveCheckedSetlist()" style="flex:1; padding:12px; background:var(--primary); color:white; border:none; border-radius:5px;">保存</button>
       <button onclick="closeModal()" style="padding:12px; background:#ccc; border:none; border-radius:5px;">戻る</button>
     </div>
   </div>
 </div>
 
-<nav id="bottom-nav">
+<nav>
   <button onclick="showTab('search')" id="nav-search" class="active">登録</button>
   <button onclick="showTab('my-log')" id="nav-my-log">履歴</button>
   <button onclick="showTab('stats')" id="nav-stats">統計</button>
@@ -439,7 +162,7 @@ input[type="file"] {
       loadUserData();
       renderAll();
     } catch (e) {
-      console.error("Load Error:", e);
+      console.error(e);
       document.getElementById('master-live-list').innerHTML = "データ読み込みエラー";
     }
   }
@@ -466,8 +189,6 @@ input[type="file"] {
     document.getElementById('nav-' + tabId).classList.add('active');
   }
 
-  // --- 1. 登録タブ ---
-  // --- 1. 探すタブ ---
   function renderMainLiveList() {
     const container = document.getElementById('master-live-list');
     const grouped = {};
@@ -481,23 +202,22 @@ input[type="file"] {
     let html = "";
     Object.keys(grouped).sort((a,b) => b-a).forEach(year => {
       html += `<div class="year-section"><div class="year-label">${year}</div>`;
-      Object.keys(grouped[year]).forEach(tourTitle => {
-        const livesInTour = grouped[year][tourTitle];
+      Object.keys(grouped[year]).forEach(title => {
+        const lives = grouped[year][title];
         html += `
           <div class="tour-group">
             <div class="tour-header" onclick="this.nextElementSibling.classList.toggle('open')">
-              <span>${tourTitle}</span>
-              <span style="font-size:0.8em; color:#888;">${livesInTour.length}公演 ▾</span>
+              <span>${title}</span>
+              <span style="font-size:0.8em; color:#888;">${lives.length}公演 ▾</span>
             </div>
             <div class="tour-body">
-              ${livesInTour.map(l => {
+              ${lives.map(l => {
                 const isAttended = userData.attendedIds.includes(String(l.id));
-                // 【修正ポイント】onclickに「this」を追加
                 return `
                   <div class="card">
                     <div class="live-info">
                       <span style="color:#888; font-family:monospace;">${l.date.substring(5).replace('-', '/')}</span>
-                      <span style="font-weight:500;">${l.venue}</span>
+                      <span>${l.venue}</span>
                     </div>
                     <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${l.id}', this)">
                       ${isAttended ? '✅' : '＋'}
@@ -512,86 +232,60 @@ input[type="file"] {
     container.innerHTML = html;
   }
 
-  function toggleAttend(id, btnElement) {
+  function toggleAttend(id, btn) {
     const idStr = String(id);
     const index = userData.attendedIds.indexOf(idStr);
-    let isNowAttended = false;
-
+    let attended = false;
     if (index > -1) {
-      if (!confirm("解除してよろしいですか？（セトリ情報も削除されます）")) return;
+      if (!confirm("解除しますか？")) return;
       userData.attendedIds.splice(index, 1);
       delete userData.customSetlists[idStr];
-      isNowAttended = false;
     } else {
       userData.attendedIds.push(idStr);
-      isNowAttended = true;
+      attended = true;
     }
-    
     saveUserData();
-
-    // 【修正ポイント】リスト全体を再描画せず、ボタンの見た目だけを直接書き換える
-    if (btnElement) {
-      btnElement.className = `btn-mini ${isNowAttended ? 'btn-del' : 'btn-add'}`;
-      btnElement.textContent = isNowAttended ? '✅' : '＋';
+    if (btn) {
+      btn.className = `btn-mini ${attended ? 'btn-del' : 'btn-add'}`;
+      btn.textContent = attended ? '✅' : '＋';
     }
-
-    // 履歴と統計タブの中身は、裏側でこっそり更新しておく
     renderMyHistory();
     renderMyStats();
   }
 
-
-
-  // --- 2. 履歴タブ ---
   function renderMyHistory() {
     const container = document.getElementById('my-history-list');
     const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
-    
-    const totalDisplay = `<div class="stats-summary-header">Total Lives: ${myLives.length} 回参戦</div>`;
+    document.getElementById('stats-total-lives').textContent = `Total Lives: ${myLives.length} 回参戦`;
 
     if (myLives.length === 0) {
-      container.innerHTML = totalDisplay + "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
+      container.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
       return;
     }
 
-    container.innerHTML = totalDisplay + myLives.map(l => {
+    container.innerHTML = myLives.map(l => {
       const setlist = userData.customSetlists[String(l.id)] || [];
-      const displayDate = l.date.replace(/-/g, '/');
-      
       return `
-        <div class="card my-log-card">
+        <div class="card">
           <div class="log-title-row">
-            <span class="log-date">${displayDate}</span>
+            <span class="log-date">${l.date.replace(/-/g, '/')}</span>
             <span class="log-title">${l.title}</span>
           </div>
-          <div style="font-size:0.9em; color:#555; margin-bottom:12px;">${l.venue}</div>
-          
+          <div style="font-size:0.85em; color:#555; margin-bottom:10px;">${l.venue}</div>
           <div class="log-actions">
-            <button class="btn-log-action btn-setlist" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">
-              📊 セトリ (${setlist.length})
-            </button>
-            <button class="btn-log-action btn-edit-log" onclick="openSetlistEditor('${l.id}')">
-              ✏️ 編集
-            </button>
+            <button class="btn-log-action btn-setlist" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">📊 セトリ (${setlist.length})</button>
+            <button class="btn-log-action btn-edit-log" onclick="openSetlistEditor('${l.id}')">✏️ 編集</button>
           </div>
-          
           <div id="sv-${l.id}" class="setlist-collapse">
-            ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '<div style="color:#999; padding:5px;">セトリ未登録</div>'}
+            ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : 'セトリ未登録'}
           </div>
         </div>`;
     }).join('');
   }
-  
-    // --- 3. 統計タブ ---
-  function renderMyStats() {
-    const myLivesCount = userData.attendedIds.length;
-    const totalLivesEl = document.getElementById('stats-total-lives');
-    if (totalLivesEl) {
-      totalLivesEl.textContent = `Total Lives: ${myLivesCount} 回参戦`;
-    }
 
+  function renderMyStats() {
     const songCounts = {};
-    const prefCounts = {}; // 都道府県集計用
+    const prefCounts = {};
     const yearCounts = {};
     const currentYear = new Date().getFullYear();
     for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
@@ -599,21 +293,14 @@ input[type="file"] {
     userData.attendedIds.forEach(liveId => {
       const live = masterLives.find(l => String(l.id) === String(liveId));
       if (!live) return;
-
-      // 年別
       const y = live.date.substring(0, 4);
       if (yearCounts[y] !== undefined) yearCounts[y]++;
 
-      // --- ここを以下の3行に書き換えてください ---
       const prefName = live.prefecture || live.pref || "その他/不明";
-      
       if (!prefCounts[prefName]) prefCounts[prefName] = { count: 0, lives: [] };
-      // ------------------------------------------
-
       prefCounts[prefName].count++;
       prefCounts[prefName].lives.push(live);
 
-      // 曲別
       const setlist = userData.customSetlists[String(liveId)] || [];
       setlist.forEach(sid => {
         if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
@@ -622,9 +309,7 @@ input[type="file"] {
       });
     });
 
-
-
-    // --- A. 曲ランキング ---
+    // A. 曲ランキング
     const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
       .sort((a, b) => b.count - a.count);
 
@@ -639,33 +324,28 @@ input[type="file"] {
             <div class="stat-rank-num">${idx+1}</div>
             <div class="stat-song-info">
               <div class="stat-song-title">${song ? song.title : '不明'}</div>
-              <div class="stat-latest-info">最新: ${latest.date} / ${latest.venue}</div>
+              <div class="stat-latest-info">${latest.date} / ${latest.title} / ${latest.venue}</div>
             </div>
             <div class="stat-count-badge">${item.count}回</div>
           </div>
           <div class="stat-details-list">
-            <strong>演奏履歴:</strong>
-            ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
+            ${item.lives.map(l => `<div class="detail-row">📅 ${l.date}<br>🚩 ${l.title}<br>📍 ${l.venue}</div>`).join('')}
           </div>
         </div>`;
     }).join('');
 
-    // --- B. 未聴曲リスト ---
+    // B. 未聴曲
     const heardIds = new Set(Object.keys(songCounts).map(String));
     const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
     document.getElementById('stats-unheard-list').innerHTML = `
-      <div style="font-size:0.85em; margin-bottom:6px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
-      <div class="unheard-grid"> 
-        ${unheard.map(s => {
-          const fontSize = s.title.length > 12 ? '0.6rem' : '0.75rem';
-          return `<div class="unheard-item" style="font-size: ${fontSize};">${s.title}</div>`;
-        }).join('')}
-      </div>`;
+      <div style="font-size:0.85em; margin-bottom:8px; font-weight:bold;">未聴曲 (${unheard.length})</div>
+      <div class="unheard-grid">${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}</div>`;
 
-    // --- C. 年別グラフ ---
+    // C. 年別
     const maxVal = Math.max(...Object.values(yearCounts), 1);
     document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).map(year => {
       const val = yearCounts[year];
+      if (val === 0 && year < 1999) return '';
       return `<div class="graph-row">
         <div class="graph-label">${year}</div>
         <div class="graph-bar-area"><div class="graph-bar" style="width:${(val/maxVal)*100}%"></div></div>
@@ -673,7 +353,7 @@ input[type="file"] {
       </div>`;
     }).join('');
 
-    // --- D. 都道府県ランキング ---
+    // D. 都道府県ランキング
     const sortedPrefs = Object.keys(prefCounts).map(p => ({ name: p, ...prefCounts[p] }))
       .sort((a,b) => b.count - a.count);
 
@@ -687,39 +367,49 @@ input[type="file"] {
             <div class="stat-count-badge">${item.count}回</div>
           </div>
           <div class="stat-details-list">
-            ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.venue}</div>`).join('')}
+            ${item.lives.map(l => `<div class="detail-row">📅 ${l.date}<br>🚩 ${l.title}<br>📍 ${l.venue}</div>`).join('')}
           </div>
         </div>`;
     }).join('');
     
+    // ボタンの初期表示状態
+    toggleRanking('song', false);
+    toggleRanking('venue', false);
     document.getElementById('btn-more-songs').style.display = sortedSongs.length > 10 ? 'block' : 'none';
     document.getElementById('btn-more-venues').style.display = sortedPrefs.length > 10 ? 'block' : 'none';
   }
 
-
-
-
-  function showMoreRanking(type) {
+  // もっと見る・閉じるの切り替え
+  function toggleRanking(type, show) {
     const selector = type === 'song' ? '.song-hidden' : '.venue-hidden';
+    const btnMore = document.getElementById(type === 'song' ? 'btn-more-songs' : 'btn-more-venues');
+    const btnHide = document.getElementById(type === 'song' ? 'btn-hide-songs' : 'btn-hide-venues');
+
     document.querySelectorAll(selector).forEach(el => {
-      el.classList.remove('hidden-rank-item');
+      el.style.display = show ? 'block' : 'none';
     });
-    document.getElementById(type === 'song' ? 'btn-more-songs' : 'btn-more-venues').style.display = 'none';
+
+    if (show) {
+      btnMore.style.display = 'none';
+      btnHide.style.display = 'block';
+    } else {
+      // 10件以上ある場合のみ「もっと見る」を出す
+      const items = document.querySelectorAll(selector).length;
+      if (items > 0) btnMore.style.display = 'block';
+      btnHide.style.display = 'none';
+    }
   }
 
   function getSongTitle(id) {
     const s = masterSongs.find(m => String(m.id) === String(id));
-    return s ? s.title : "不明な曲";
+    return s ? s.title : "不明";
   }
 
-  // --- セトリ編集用 ---
   function openSetlistEditor(liveId) {
     currentLiveId = String(liveId);
     const live = masterLives.find(l => String(l.id) === currentLiveId);
     tempSelectedSongs = userData.customSetlists[currentLiveId] ? [...userData.customSetlists[currentLiveId]] : [];
-    
-    document.getElementById('modal-live-title').textContent = live ? live.title : "セトリ編集";
-    document.getElementById('song-filter').value = "";
+    document.getElementById('modal-live-title').textContent = live ? live.title : "編集";
     document.getElementById('edit-modal').style.display = 'block';
     renderMasterSongList();
   }
@@ -727,26 +417,16 @@ input[type="file"] {
   function renderMasterSongList() {
     const area = document.getElementById('master-song-select-area');
     const query = document.getElementById('song-filter').value.toLowerCase();
-    
-    let filtered = masterSongs.filter(s => 
-      (s.title || "").toLowerCase().includes(query) || (s.ruby || "").toLowerCase().includes(query)
-    );
-    filtered.sort((a,b) => (a.ruby || a.title).localeCompare(b.ruby || b.title, 'ja'));
+    const filtered = masterSongs.filter(s => (s.title||"").toLowerCase().includes(query) || (s.ruby||"").toLowerCase().includes(query))
+      .sort((a,b) => (a.ruby||a.title).localeCompare(b.ruby||b.title, 'ja'));
 
-    let lastChar = "";
     area.innerHTML = filtered.map(s => {
-      const idStr = String(s.id);
-      const selIdx = tempSelectedSongs.indexOf(idStr);
-      let indexDisplay = "";
-      const curChar = (s.ruby || s.title || "#").charAt(0).toUpperCase();
-      if (curChar !== lastChar) { indexDisplay = curChar; lastChar = curChar; }
-
-      return `
-        <div class="song-select-item ${selIdx > -1 ? 'selected' : ''}" onclick="toggleSongSelection('${idStr}')">
-          <div class="song-index-label">${indexDisplay}</div>
-          <div class="song-title-text">${s.title}</div>
-          <div>${selIdx > -1 ? `<div class="song-number-badge">${selIdx+1}</div>` : '○'}</div>
-        </div>`;
+      const id = String(s.id);
+      const idx = tempSelectedSongs.indexOf(id);
+      return `<div class="card" style="display:flex; justify-content:space-between; padding:10px; margin-bottom:5px; background:${idx>-1?'#fff0f0':'#fff'}" onclick="toggleSongSelection('${id}')">
+        <span>${s.title}</span>
+        <span>${idx > -1 ? `<b>[${idx+1}]</b>` : '○'}</span>
+      </div>`;
     }).join('');
   }
 
@@ -764,18 +444,13 @@ input[type="file"] {
     closeModal();
   }
 
-  function closeModal() {
-    document.getElementById('edit-modal').style.display = 'none';
-  }
+  function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
-  // --- 設定（バックアップ・リストア） ---
   function exportBackup() {
-    const dataStr = JSON.stringify(userData);
-    const blob = new Blob([dataStr], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([JSON.stringify(userData)], {type: "application/json"});
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `pg_diary_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.href = URL.createObjectURL(blob);
+    a.download = `pg_backup.json`;
     a.click();
   }
 
@@ -783,27 +458,18 @@ input[type="file"] {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = event => {
+    reader.onload = e => {
       try {
-        const imported = JSON.parse(event.target.result);
-        if (imported.attendedIds) {
-          userData = imported;
-          saveUserData();
-          renderAll();
-          alert("復元が完了しました！");
-        } else {
-          alert("データ形式が正しくありません。");
-        }
-      } catch (err) {
-        alert("ファイルの読み込みに失敗しました。");
-      }
+        userData = JSON.parse(e.target.result);
+        saveUserData();
+        renderAll();
+        alert("復元完了");
+      } catch (err) { alert("失敗"); }
     };
     reader.readAsText(file);
   }
 
   init();
 </script>
-
-
 </body>
 </html>
