@@ -66,34 +66,39 @@
 .btn-export { background: #444; color: white; }
 .btn-import-trigger { background: #eee; color: #333; border: 1px solid #ddd; }
 
-/* 統計用：未聴曲のグリッド表示 */
+/* 未聴曲エリアの親カードの制限を外す */
+#stats-unheard-list {
+    height: auto !important;
+    max-height: none !important;
+    padding: 10px !important;
+}
+
+/* グリッド本体の高さを固定してスクロールさせる */
 .unheard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2列 */
-  gap: 8px;
-  padding: 10px;
-  background: #fdfdfd;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  overflow-y: auto; /* スクロールを有効に */
-  -webkit-overflow-scrolling: touch;
-  /* ここから下の高さをJSで上書きします */
-  height: 50vh; 
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    /* iPhoneの画面の高さに合わせてしっかり確保 */
+    height: 450px !important; 
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 5px;
 }
 
 .unheard-item {
-  background: white;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  font-size: 0.85em;
-  padding: 8px 4px; /* 箱の大きさを適正に */
-  min-height: 36px; /* 最低限の高さ */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    font-size: 0.8em;
+    padding: 10px 5px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
+
 
 
 .setting-item {
@@ -200,7 +205,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary9</h1></header>
+<header><h1>🎸 PG Live Diary</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -485,16 +490,17 @@ function renderMyStats() {
       </div>`;
   }).join('');
 
-// --- B. 未聴曲リスト (領域そのものを大きく確保) ---
+// --- B. 未聴曲リスト (親の制限を無視して高さを出す) ---
 const heardIds = new Set(Object.keys(songCounts).map(String));
 const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
 document.getElementById('stats-unheard-list').innerHTML = `
-  <div style="font-size:0.9em; margin-bottom:8px; font-weight:bold; color:#444; padding-left:5px;">
-    未聴曲リスト (${unheard.length} 曲)
-  </div>
-  <div class="unheard-grid" style="height: 60vh !important;"> 
+  <div style="font-size:0.9em; margin-bottom:10px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
+  <div class="unheard-grid"> 
     ${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
   </div>`;
+
+
+
 
 
 
