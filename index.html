@@ -193,7 +193,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary4</h1></header>
+<header><h1>🎸 PG Live Diary5</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -383,37 +383,40 @@ input[type="file"] {
   }
 
   // --- 2. 履歴タブ ---
-  function renderMyHistory() {
-    const container = document.getElementById('my-history-list');
-    const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
-    
-    // 統計トップの数字更新
-    document.getElementById('stats-total-lives').textContent = `Total Lives: ${myLives.length} 回参戦`;
+// --- 履歴タブ (修正版：トップに参加数を追加) ---
+function renderMyHistory() {
+  const container = document.getElementById('my-history-list');
+  const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
+  
+  // 統計ページと同じ参加数表示を作成
+  const totalDisplay = `<div class="stats-summary-header">Total Lives: ${myLives.length} 回参戦</div>`;
 
-    if (myLives.length === 0) {
-      container.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
-      return;
-    }
-
-    container.innerHTML = myLives.map(l => {
-      const setlist = userData.customSetlists[String(l.id)] || [];
-      return `
-        <div class="card my-log-card">
-          <div class="log-title-row">
-            <span class="log-date">${l.date}</span>
-            <span class="log-title">${l.title}</span>
-          </div>
-          <div style="font-size:0.85em;">${l.venue}</div>
-          <div class="log-actions">
-            <button class="btn-mini" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">📊 セトリ (${setlist.length})</button>
-            <button class="btn-mini" style="background:#666; color:white;" onclick="openSetlistEditor('${l.id}')">✏️ 編集</button>
-          </div>
-          <div id="sv-${l.id}" class="setlist-collapse">
-            ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '未登録'}
-          </div>
-        </div>`;
-    }).join('');
+  if (myLives.length === 0) {
+    container.innerHTML = totalDisplay + "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
+    return;
   }
+
+  // 参加数表示 ＋ カードリストを表示
+  container.innerHTML = totalDisplay + myLives.map(l => {
+    const setlist = userData.customSetlists[String(l.id)] || [];
+    return `
+      <div class="card my-log-card">
+        <div class="log-title-row">
+          <span class="log-date">${l.date}</span>
+          <span class="log-title">${l.title}</span>
+        </div>
+        <div style="font-size:0.85em;">${l.venue}</div>
+        <div class="log-actions">
+          <button class="btn-mini" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">📊 セトリ (${setlist.length})</button>
+          <button class="btn-mini" style="background:#666; color:white;" onclick="openSetlistEditor('${l.id}')">✏️ 編集</button>
+        </div>
+        <div id="sv-${l.id}" class="setlist-collapse">
+          ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '未登録'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
 
   // --- 3. 統計タブ（ご要望の全機能実装） ---
 function renderMyStats() {
