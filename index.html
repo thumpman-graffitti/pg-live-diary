@@ -336,7 +336,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary7</h1></header>
+<header><h1>🎸 PG Live Diary8</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -595,21 +595,25 @@ return `
       const y = live.date.substring(0, 4);
       if (yearCounts[y] !== undefined) yearCounts[y]++;
 
-      // 【修正箇所】lives.json の prefecture フィールドを直接使う
-      const prefName = live.prefecture || "その他/不明";
+      // --- ここを以下の3行に書き換えてください ---
+      const prefName = live.prefecture || live.pref || "その他/不明";
       
       if (!prefCounts[prefName]) prefCounts[prefName] = { count: 0, lives: [] };
+      // ------------------------------------------
+
       prefCounts[prefName].count++;
       prefCounts[prefName].lives.push(live);
 
       // 曲別
-      const setlist = userData.customSetlists[liveId] || [];
+      const setlist = userData.customSetlists[String(liveId)] || [];
       setlist.forEach(sid => {
         if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
         songCounts[sid].count++;
         songCounts[sid].lives.push(live);
       });
     });
+
+
 
     // --- A. 曲ランキング ---
     const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
