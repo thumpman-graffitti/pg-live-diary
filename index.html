@@ -114,8 +114,8 @@ header h1 {
 
 <header>
   <div class="header-container">
-    <h1>PG LIVE DIARY</h1>
-    <div class="version-date">v2.3 (2026.01.23)</div>
+    <h1>PG LIVE DIARY🍊</h1>
+    <div class="version-date">v2.4 (2026.01.23)</div>
   </div>
 </header>
 
@@ -376,10 +376,25 @@ header h1 {
 
     // B. 未聴曲
     const heardIds = new Set(Object.keys(songCounts).map(String));
-    const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
+    const unheard = masterSongs
+      .filter(s => !heardIds.has(String(s.id)))
+      .sort((a, b) => {
+        const isUnreleasedA = a.album === "未発売";
+        const isUnreleasedB = b.album === "未発売";
+
+        // 優先度1: albumが「未発売」のものを1番下に
+        if (isUnreleasedA !== isUnreleasedB) {
+          return isUnreleasedA ? 1 : -1;
+        }
+        // 優先度2: idの昇順
+        return Number(a.id) - Number(b.id);
+      });
+
     document.getElementById('stats-unheard-list').innerHTML = `
       <div style="font-size:0.85em; margin-bottom:8px; font-weight:bold;">未聴曲 (${unheard.length})</div>
       <div class="unheard-grid">${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}</div>`;
+
+
 
     // C. 年別
     const maxVal = Math.max(...Object.values(yearCounts), 1);
