@@ -533,157 +533,164 @@ return `
   }
 
   // --- 2. 履歴タブ ---
-function renderMyHistory() {
-  const container = document.getElementById('my-history-list');
-  const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
-  
-  const totalDisplay = `<div class="stats-summary-header">Total Lives: ${myLives.length} 回参戦</div>`;
-
-  if (myLives.length === 0) {
-    container.innerHTML = totalDisplay + "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
-    return;
-  }
-
-  container.innerHTML = totalDisplay + myLives.map(l => {
-    const setlist = userData.customSetlists[String(l.id)] || [];
-    // 日付をスラッシュ形式に
-    const displayDate = l.date.replace(/-/g, '/');
+  // --- 2. 履歴タブ ---
+  function renderMyHistory() {
+    const container = document.getElementById('my-history-list');
+    const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
     
-    // --- renderMyHistory 関数の return 部分を以下に差し替え ---
-return `
-  <div class="card my-log-card">
-    <div class="log-title-row">
-      <span class="log-date">${displayDate}</span>
-      <span class="log-title">${l.title}</span>
-    </div>
-    <div class="log-venue">${l.venue}</div>
-    
-    <div class="log-actions">
-      <button class="btn-log-action btn-setlist" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">
-        📊 セトリ (${setlist.length})
-      </button>
+    const totalDisplay = `<div class="stats-summary-header">Total Lives: ${myLives.length} 回参戦</div>`;
+
+    if (myLives.length === 0) {
+      container.innerHTML = totalDisplay + "<p style='text-align:center; padding:20px; color:#888;'>参戦履歴がありません。</p>";
+      return;
+    }
+
+    container.innerHTML = totalDisplay + myLives.map(l => {
+      const setlist = userData.customSetlists[String(l.id)] || [];
+      const displayDate = l.date.replace(/-/g, '/');
       
-      <button class="btn-log-action btn-edit-log" onclick="openSetlistEditor('${l.id}')">
-        ✏️ 編集
-      </button>
-    </div>
-    
-    <div id="sv-${l.id}" class="setlist-collapse">
-      ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '<div style="color:#999; padding:5px;">セトリ未登録</div>'}
-    </div>
-  </div>`;
-
-
-  // --- 3. 統計タブ（ご要望の全機能実装） ---
-function renderMyStats() {
-  // 参加回数の表示
-  const myLivesCount = userData.attendedIds.length;
-  const totalLivesEl = document.getElementById('stats-total-lives');
-  if (totalLivesEl) {
-    totalLivesEl.textContent = `Total Lives: ${myLivesCount} 回参戦`;
+      return `
+        <div class="card my-log-card">
+          <div class="log-title-row">
+            <span class="log-date">${displayDate}</span>
+            <span class="log-title">${l.title}</span>
+          </div>
+          <div style="font-size:0.9em; color:#555; margin-bottom:12px;">${l.venue}</div>
+          
+          <div class="log-actions">
+            <button class="btn-log-action btn-setlist" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">
+              📊 セトリ (${setlist.length})
+            </button>
+            <button class="btn-log-action btn-edit-log" onclick="openSetlistEditor('${l.id}')">
+              ✏️ 編集
+            </button>
+          </div>
+          
+          <div id="sv-${l.id}" class="setlist-collapse">
+            ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '<div style="color:#999; padding:5px;">セトリ未登録</div>'}
+          </div>
+        </div>`;
+    }).join('');
   }
 
-  const songCounts = {};
-  const venueCounts = {};
-  const yearCounts = {};
-  const currentYear = new Date().getFullYear();
-  for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
+  // --- 3. 統計タブ ---
+  function renderMyStats() {
+    const myLivesCount = userData.attendedIds.length;
+    const totalLivesEl = document.getElementById('stats-total-lives');
+    if (totalLivesEl) {
+      totalLivesEl.textContent = `Total Lives: ${myLivesCount} 回参戦`;
+    }
 
-  userData.attendedIds.forEach(liveId => {
-    const live = masterLives.find(l => String(l.id) === String(liveId));
-    if (!live) return;
-    const y = live.date.substring(0, 4);
-    if (yearCounts[y] !== undefined) yearCounts[y]++;
+    const songCounts = {};
+    const prefCounts = {}; // 都道府県集計用
+    const yearCounts = {};
+    
+    // 都道府県リスト（判定用）
+    const prefs = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 
-    if (!venueCounts[live.venue]) venueCounts[live.venue] = { count: 0, lives: [] };
-    venueCounts[live.venue].count++;
-    venueCounts[live.venue].lives.push(live);
+    const currentYear = new Date().getFullYear();
+    for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
 
-    const setlist = userData.customSetlists[liveId] || [];
-    setlist.forEach(sid => {
-      if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
-      songCounts[sid].count++;
-      songCounts[sid].lives.push(live);
+    userData.attendedIds.forEach(liveId => {
+      const live = masterLives.find(l => String(l.id) === String(liveId));
+      if (!live) return;
+
+      // 年別
+      const y = live.date.substring(0, 4);
+      if (yearCounts[y] !== undefined) yearCounts[y]++;
+
+      // 都道府県の判定（会場名の先頭から一致するものを探す）
+      let foundPref = "その他/海外";
+      for (const p of prefs) {
+        if (live.venue.startsWith(p)) {
+          foundPref = p;
+          break;
+        }
+      }
+      if (!prefCounts[foundPref]) prefCounts[foundPref] = { count: 0, lives: [] };
+      prefCounts[foundPref].count++;
+      prefCounts[foundPref].lives.push(live);
+
+      // 曲別
+      const setlist = userData.customSetlists[liveId] || [];
+      setlist.forEach(sid => {
+        if (!songCounts[sid]) songCounts[sid] = { count: 0, lives: [] };
+        songCounts[sid].count++;
+        songCounts[sid].lives.push(live);
+      });
     });
-  });
 
-  // --- A. 曲ランキング (初期表示10位) ---
-  const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
-    .sort((a, b) => b.count - a.count);
+    // --- A. 曲ランキング ---
+    const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
+      .sort((a, b) => b.count - a.count);
 
-  document.getElementById('stats-song-ranking').innerHTML = sortedSongs.map((item, idx) => {
-    const song = masterSongs.find(s => String(s.id) === String(item.id));
-    item.lives.sort((a,b) => new Date(b.date) - new Date(a.date));
-    const latest = item.lives[0];
-    // idx >= 10 を非表示対象に
-    const hideClass = idx >= 10 ? 'hidden-rank-item song-hidden' : '';
-    return `
-      <div class="stat-ranking-item ${hideClass}">
-        <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="stat-rank-num">${idx+1}</div>
-          <div class="stat-song-info">
-            <div class="stat-song-title">${song ? song.title : '不明'}</div>
-            <div class="stat-latest-info">最新: ${latest.date} / ${latest.venue}</div>
+    document.getElementById('stats-song-ranking').innerHTML = sortedSongs.map((item, idx) => {
+      const song = masterSongs.find(s => String(s.id) === String(item.id));
+      item.lives.sort((a,b) => new Date(b.date) - new Date(a.date));
+      const latest = item.lives[0];
+      const hideClass = idx >= 10 ? 'hidden-rank-item song-hidden' : '';
+      return `
+        <div class="stat-ranking-item ${hideClass}">
+          <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-song-info">
+              <div class="stat-song-title">${song ? song.title : '不明'}</div>
+              <div class="stat-latest-info">最新: ${latest.date} / ${latest.venue}</div>
+            </div>
+            <div class="stat-count-badge">${item.count}回</div>
           </div>
-          <div class="stat-count-badge">${item.count}回</div>
-        </div>
-        <div class="stat-details-list">
-          <strong>演奏履歴:</strong>
-          ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
-        </div>
+          <div class="stat-details-list">
+            <strong>演奏履歴:</strong>
+            ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    // --- B. 未聴曲リスト ---
+    const heardIds = new Set(Object.keys(songCounts).map(String));
+    const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
+    document.getElementById('stats-unheard-list').innerHTML = `
+      <div style="font-size:0.85em; margin-bottom:6px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
+      <div class="unheard-grid"> 
+        ${unheard.map(s => {
+          const fontSize = s.title.length > 12 ? '0.6rem' : '0.75rem';
+          return `<div class="unheard-item" style="font-size: ${fontSize};">${s.title}</div>`;
+        }).join('')}
       </div>`;
-  }).join('');
 
-// --- B. 未聴曲リスト (親の制限を無視して高さを出す) ---
-const heardIds = new Set(Object.keys(songCounts).map(String));
-const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
-// --- B. 未聴曲リスト (文字数に応じて調整) ---
-document.getElementById('stats-unheard-list').innerHTML = `
-  <div style="font-size:0.85em; margin-bottom:6px; font-weight:bold; color:#444;">未聴曲リスト (${unheard.length} 曲)</div>
-  <div class="unheard-grid"> 
-    ${unheard.map(s => {
-      // 文字数が12文字を超えたらフォントサイズをさらに小さくする
-      const fontSize = s.title.length > 12 ? '0.6rem' : '0.75rem';
-      return `<div class="unheard-item" style="font-size: ${fontSize};">${s.title}</div>`;
-    }).join('')}
-  </div>`;
-
-
-  // --- C. 年別グラフ ---
-  const maxVal = Math.max(...Object.values(yearCounts), 1);
-  document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).map(year => {
-    const val = yearCounts[year];
-    return `<div class="graph-row">
-      <div class="graph-label">${year}</div>
-      <div class="graph-bar-area"><div class="graph-bar" style="width:${(val/maxVal)*100}%"></div></div>
-      <div class="graph-val">${val}</div>
-    </div>`;
-  }).join('');
-
-  // --- D. 都道府県/会場ランキング (初期表示10位) ---
-  const sortedVenues = Object.keys(venueCounts).map(v => ({ name: v, ...venueCounts[v] }))
-    .sort((a,b) => b.count - a.count);
-
-  document.getElementById('stats-venue-ranking').innerHTML = sortedVenues.map((item, idx) => {
-    const hideClass = idx >= 10 ? 'hidden-rank-item venue-hidden' : '';
-    return `
-      <div class="stat-ranking-item ${hideClass}">
-        <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="stat-rank-num">${idx+1}</div>
-          <div class="stat-song-info"><div class="stat-song-title">${item.name}</div></div>
-          <div class="stat-count-badge">${item.count}回</div>
-        </div>
-        <div class="stat-details-list">
-          ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
-        </div>
+    // --- C. 年別グラフ ---
+    const maxVal = Math.max(...Object.values(yearCounts), 1);
+    document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).map(year => {
+      const val = yearCounts[year];
+      return `<div class="graph-row">
+        <div class="graph-label">${year}</div>
+        <div class="graph-bar-area"><div class="graph-bar" style="width:${(val/maxVal)*100}%"></div></div>
+        <div class="graph-val">${val}</div>
       </div>`;
-  }).join('');
-  
-  // ボタンの表示判定
-  document.getElementById('btn-more-songs').style.display = sortedSongs.length > 10 ? 'block' : 'none';
-  document.getElementById('btn-more-venues').style.display = sortedVenues.length > 10 ? 'block' : 'none';
-}
+    }).join('');
 
+    // --- D. 都道府県ランキング ---
+    const sortedPrefs = Object.keys(prefCounts).map(p => ({ name: p, ...prefCounts[p] }))
+      .sort((a,b) => b.count - a.count);
+
+    document.getElementById('stats-venue-ranking').innerHTML = sortedPrefs.map((item, idx) => {
+      const hideClass = idx >= 10 ? 'hidden-rank-item venue-hidden' : '';
+      return `
+        <div class="stat-ranking-item ${hideClass}">
+          <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-song-info"><div class="stat-song-title">${item.name}</div></div>
+            <div class="stat-count-badge">${item.count}回</div>
+          </div>
+          <div class="stat-details-list">
+            ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.venue}</div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+    
+    document.getElementById('btn-more-songs').style.display = sortedSongs.length > 10 ? 'block' : 'none';
+    document.getElementById('btn-more-venues').style.display = sortedPrefs.length > 10 ? 'block' : 'none';
+  }
 
 
   function showMoreRanking(type) {
