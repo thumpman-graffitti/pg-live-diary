@@ -18,18 +18,42 @@
     .tour-body { display: none; background: #fafafa; }
     .tour-body.open { display: block; }
     
-    
-    
-/* 設定ページ・統計ページの共通カードスタイル */
-/* ライブ1件の枠組み（横並び設定） */
+
+/* 共通のカードスタイル（履歴や設定用：縦並びを維持） */
 .card { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 8px 12px; /* 上下を少し詰めて情報量をアップ */
-  border-bottom: 1px solid #eee; 
+  display: block; /* blockに戻すことで崩れを解消 */
   background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
+
+/* 登録タブのライブ一行分（ここだけ横並びに限定する） */
+.tour-body .card {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  margin-bottom: 0; /* リスト形式なので隙間を詰める */
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+/* 履歴カード専用の調整 */
+.my-log-card {
+  display: block !important; /* 必ず縦並びにする */
+}
+
+/* 登録ボタンのサイズ固定 */
+.btn-mini { 
+  width: 36px; height: 36px; 
+  flex-shrink: 0; 
+  display: flex; align-items: center; justify-content: center;
+}
+
 
 /* ライブ名と日付のエリア */
 .live-info {
@@ -38,20 +62,6 @@
   line-height: 1.4;
   display: flex;
   gap: 10px; /* 日付と会場の間の隙間 */
-}
-
-/* ＋ボタンのサイズ調整 */
-.btn-mini { 
-  border: none; 
-  border-radius: 4px; 
-  width: 34px;  /* 正方形に近い形に */
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer; 
-  font-size: 1rem; 
-  flex-shrink: 0; /* 画面が狭くなってもボタンが潰れないように保持 */
 }
 
 
@@ -238,7 +248,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary3</h1></header>
+<header><h1>🎸 PG Live Diary4</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -394,16 +404,20 @@ input[type="file"] {
               ${livesInTour.map(l => {
                 const isAttended = userData.attendedIds.includes(String(l.id));
                 // --- 修正後の renderMainLiveList 内のループ部分 ---
+
+  // --- renderMainLiveList 内のループ部分 ---
 return `
   <div class="card">
     <div class="live-info">
-      <span style="color:#888; font-family:monospace;">${l.date.substring(5)}</span>
+      <span style="color:#888; font-family:monospace;">${l.date.substring(5).replace('-', '/')}</span>
       <span style="font-weight:500;">${l.venue}</span>
     </div>
     <button class="btn-mini ${isAttended ? 'btn-del' : 'btn-add'}" onclick="toggleAttend('${l.id}')">
       ${isAttended ? '✅' : '＋'}
     </button>
   </div>`;
+
+  
   
                   
               }).join('')}
