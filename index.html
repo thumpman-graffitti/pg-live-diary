@@ -44,15 +44,6 @@
   box-shadow: none;
 }
 
-/* 3. 履歴タブ専用のカード調整 */
-.my-log-card {
-  display: block !important;
-  padding: 10px 12px !important;
-  margin-bottom: 8px !important;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
 
 /* 4. 共通パーツ */
 .live-info {
@@ -238,11 +229,9 @@ input[type="file"] {
     .btn-mini { border: none; border-radius: 4px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
     
     /* 履歴ページ用の個別設定 */
-    .my-log-card { display: block !important; padding: 10px 12px !important; margin-bottom: 8px !important; border-radius: 6px; border: 1px solid #ddd; }
-    .log-title-row { display: flex; align-items: baseline; gap: 8px; }
     .log-date { font-size: 0.8em; color: #888; }
     .log-title { font-weight: bold; color: var(--primary); }
-    .log-actions { display: flex; gap: 5px; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
+
     
     /* 共通・ボタン色など */
     .btn-add { background: #eee; color: #666; }
@@ -301,7 +290,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary4</h1></header>
+<header><h1>🎸 PG Live Diary5</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -498,12 +487,10 @@ return `
   }
 
   // --- 2. 履歴タブ ---
-// --- 履歴タブ (修正版：トップに参加数を追加) ---
 function renderMyHistory() {
   const container = document.getElementById('my-history-list');
   const myLives = masterLives.filter(l => userData.attendedIds.includes(String(l.id)));
   
-  // 統計ページと同じ参加数表示を作成
   const totalDisplay = `<div class="stats-summary-header">Total Lives: ${myLives.length} 回参戦</div>`;
 
   if (myLives.length === 0) {
@@ -511,22 +498,30 @@ function renderMyHistory() {
     return;
   }
 
-  // 参加数表示 ＋ カードリストを表示
   container.innerHTML = totalDisplay + myLives.map(l => {
     const setlist = userData.customSetlists[String(l.id)] || [];
+    // 日付をスラッシュ形式に
+    const displayDate = l.date.replace(/-/g, '/');
+    
     return `
       <div class="card my-log-card">
         <div class="log-title-row">
-          <span class="log-date">${l.date}</span>
+          <span class="log-date">${displayDate}</span>
           <span class="log-title">${l.title}</span>
         </div>
-        <div style="font-size:0.85em;">${l.venue}</div>
+        <div class="log-venue">${l.venue}</div>
+        
         <div class="log-actions">
-          <button class="btn-mini" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">📊 セトリ (${setlist.length})</button>
-          <button class="btn-mini" style="background:#666; color:white;" onclick="openSetlistEditor('${l.id}')">✏️ 編集</button>
+          <button class="btn-log-action btn-setlist" onclick="document.getElementById('sv-${l.id}').classList.toggle('open')">
+            📊 セトリ (${setlist.length})
+          </button>
+          <button class="btn-log-action btn-edit-log" onclick="openSetlistEditor('${l.id}')">
+            ✏️ 編集
+          </button>
         </div>
+        
         <div id="sv-${l.id}" class="setlist-collapse">
-          ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '未登録'}
+          ${setlist.length > 0 ? setlist.map((sid, i) => `<div>${i+1}. ${getSongTitle(sid)}</div>`).join('') : '<div style="color:#999; padding:5px;">セトリ未登録</div>'}
         </div>
       </div>`;
   }).join('');
