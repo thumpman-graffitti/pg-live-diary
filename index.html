@@ -193,7 +193,7 @@ input[type="file"] {
 </head>
 <body>
 
-<header><h1>🎸 PG Live Diary6</h1></header>
+<header><h1>🎸 PG Live Diary7</h1></header>
 
 <div id="tab-search" class="tab-content active">
   <div id="master-live-list">読み込み中...</div>
@@ -420,7 +420,7 @@ function renderMyHistory() {
 
   // --- 3. 統計タブ（ご要望の全機能実装） ---
 function renderMyStats() {
-  // --- 参加回数の表示を復活 ---
+  // 参加回数の表示
   const myLivesCount = userData.attendedIds.length;
   const totalLivesEl = document.getElementById('stats-total-lives');
   if (totalLivesEl) {
@@ -430,14 +430,12 @@ function renderMyStats() {
   const songCounts = {};
   const venueCounts = {};
   const yearCounts = {};
-  
   const currentYear = new Date().getFullYear();
   for (let y = 1999; y <= currentYear; y++) yearCounts[y] = 0;
 
   userData.attendedIds.forEach(liveId => {
     const live = masterLives.find(l => String(l.id) === String(liveId));
     if (!live) return;
-
     const y = live.date.substring(0, 4);
     if (yearCounts[y] !== undefined) yearCounts[y]++;
 
@@ -453,7 +451,7 @@ function renderMyStats() {
     });
   });
 
-  // --- A. 曲ランキング表示 ---
+  // --- A. 曲ランキング (初期表示10位) ---
   const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
     .sort((a, b) => b.count - a.count);
 
@@ -461,7 +459,8 @@ function renderMyStats() {
     const song = masterSongs.find(s => String(s.id) === String(item.id));
     item.lives.sort((a,b) => new Date(b.date) - new Date(a.date));
     const latest = item.lives[0];
-    const hideClass = idx >= 20 ? 'hidden-rank-item song-hidden' : '';
+    // idx >= 10 を非表示対象に
+    const hideClass = idx >= 10 ? 'hidden-rank-item song-hidden' : '';
     return `
       <div class="stat-ranking-item ${hideClass}">
         <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
@@ -479,35 +478,32 @@ function renderMyStats() {
       </div>`;
   }).join('');
 
-  // --- B. 未聴曲リスト (2列グリッド) ---
+  // --- B. 未聴曲リスト (高さをさらに制限) ---
   const heardIds = new Set(Object.keys(songCounts).map(String));
   const unheard = masterSongs.filter(s => !heardIds.has(String(s.id)));
-  
   document.getElementById('stats-unheard-list').innerHTML = `
-    <div style="font-size:0.8em; margin-bottom:8px; color:#666;">残り: ${unheard.length} 曲</div>
-    <div class="unheard-grid">
+    <div style="font-size:0.8em; margin-bottom:5px; color:#666;">未聴: ${unheard.length} 曲</div>
+    <div class="unheard-grid" style="max-height: 150px;">
       ${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}
     </div>`;
 
-  // --- C. 年別グラフ表示 ---
+  // --- C. 年別グラフ ---
   const maxVal = Math.max(...Object.values(yearCounts), 1);
   document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).map(year => {
     const val = yearCounts[year];
-    const width = (val / maxVal) * 100;
-    return `
-      <div class="graph-row">
-        <div class="graph-label">${year}</div>
-        <div class="graph-bar-area"><div class="graph-bar" style="width:${width}%"></div></div>
-        <div class="graph-val">${val}</div>
-      </div>`;
+    return `<div class="graph-row">
+      <div class="graph-label">${year}</div>
+      <div class="graph-bar-area"><div class="graph-bar" style="width:${(val/maxVal)*100}%"></div></div>
+      <div class="graph-val">${val}</div>
+    </div>`;
   }).join('');
 
-  // --- D. 会場ランキング表示 ---
+  // --- D. 都道府県/会場ランキング (初期表示10位) ---
   const sortedVenues = Object.keys(venueCounts).map(v => ({ name: v, ...venueCounts[v] }))
     .sort((a,b) => b.count - a.count);
 
   document.getElementById('stats-venue-ranking').innerHTML = sortedVenues.map((item, idx) => {
-    const hideClass = idx >= 20 ? 'hidden-rank-item venue-hidden' : '';
+    const hideClass = idx >= 10 ? 'hidden-rank-item venue-hidden' : '';
     return `
       <div class="stat-ranking-item ${hideClass}">
         <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
@@ -516,14 +512,14 @@ function renderMyStats() {
           <div class="stat-count-badge">${item.count}回</div>
         </div>
         <div class="stat-details-list">
-          <strong>参加履歴:</strong>
           ${item.lives.map(l => `<div class="detail-row">${l.date} : ${l.title}</div>`).join('')}
         </div>
       </div>`;
   }).join('');
-
-  document.getElementById('btn-more-songs').style.display = sortedSongs.length > 20 ? 'block' : 'none';
-  document.getElementById('btn-more-venues').style.display = sortedVenues.length > 20 ? 'block' : 'none';
+  
+  // ボタンの表示判定
+  document.getElementById('btn-more-songs').style.display = sortedSongs.length > 10 ? 'block' : 'none';
+  document.getElementById('btn-more-venues').style.display = sortedVenues.length > 10 ? 'block' : 'none';
 }
 
 
