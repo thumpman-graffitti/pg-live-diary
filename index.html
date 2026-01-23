@@ -146,7 +146,7 @@ header h1 {
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.9 (2026.01.23)</div>
+    <div class="version-date">v3.0 (2026.01.23)</div>
   </div>
 </header>
 
@@ -353,8 +353,8 @@ header h1 {
         </div>`;
     }).join('');
   }
-
-  function renderMyStats() {
+  
+    function renderMyStats() {
     const songCounts = {};
     const prefCounts = {};
     const yearCounts = {};
@@ -384,15 +384,27 @@ header h1 {
     const sortedSongs = Object.keys(songCounts).map(sid => ({ id: sid, ...songCounts[sid] }))
       .sort((a, b) => b.count - a.count);
 
+    let lastSongCount = -1;
+    let currentSongRank = 0;
+
     document.getElementById('stats-song-ranking').innerHTML = sortedSongs.map((item, idx) => {
       const song = masterSongs.find(s => String(s.id) === String(item.id));
       item.lives.sort((a,b) => new Date(b.date) - new Date(a.date));
       const latest = item.lives[0];
       const hideClass = idx >= 10 ? 'hidden-rank-item song-hidden' : '';
+      
+      // 順位制御ロジック
+      let displayRank = "";
+      if (item.count !== lastSongCount) {
+        currentSongRank = idx + 1; // 回数が変わった時だけ順位を更新
+        displayRank = currentSongRank;
+        lastSongCount = item.count;
+      }
+
       return `
         <div class="stat-ranking-item ${hideClass}">
           <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
-            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-rank-num">${displayRank}</div>
             <div class="stat-song-info">
               <div class="stat-song-title">${song ? song.title : '不明'}</div>
               <div class="stat-latest-info">${latest.date} / ${latest.title} / ${latest.venue}</div>
@@ -404,8 +416,6 @@ header h1 {
           </div>
         </div>`;
     }).join('');
-
-// --- renderMyStats関数の中の「B. 未聴曲」の部分を以下に差し替え ---
 
     // B. 未聴曲
     const heardIds = new Set(Object.keys(songCounts).map(String));
@@ -441,21 +451,29 @@ header h1 {
       </div>`;
     }).join('');
 
-
-
     // D. 都道府県ランキング
     const sortedPrefs = Object.keys(prefCounts).map(p => ({ name: p, ...prefCounts[p] }))
       .sort((a,b) => b.count - a.count);
 
+    let lastPrefCount = -1;
+    let currentPrefRank = 0;
+
     document.getElementById('stats-venue-ranking').innerHTML = sortedPrefs.map((item, idx) => {
-      // 追加：表示する前に日付の降順（新しい順）でソート
       item.lives.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
       const hideClass = idx >= 10 ? 'hidden-rank-item venue-hidden' : '';
+
+      // 順位制御ロジック
+      let displayRank = "";
+      if (item.count !== lastPrefCount) {
+        currentPrefRank = idx + 1;
+        displayRank = currentPrefRank;
+        lastPrefCount = item.count;
+      }
+
       return `
         <div class="stat-ranking-item ${hideClass}">
           <div class="stat-ranking-header" onclick="this.nextElementSibling.classList.toggle('open')">
-            <div class="stat-rank-num">${idx+1}</div>
+            <div class="stat-rank-num">${displayRank}</div>
             <div class="stat-song-info"><div class="stat-song-title">${item.name}</div></div>
             <div class="stat-count-badge">${item.count}回</div>
           </div>
@@ -464,7 +482,6 @@ header h1 {
           </div>
         </div>`;
     }).join('');
-
     
     // ボタンの初期表示状態
     toggleRanking('song', false);
@@ -472,6 +489,7 @@ header h1 {
     document.getElementById('btn-more-songs').style.display = sortedSongs.length > 10 ? 'block' : 'none';
     document.getElementById('btn-more-venues').style.display = sortedPrefs.length > 10 ? 'block' : 'none';
   }
+
 
   // もっと見る・閉じるの切り替え
   function toggleRanking(type, show) {
