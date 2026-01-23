@@ -179,7 +179,62 @@
   { "id": "0178", "date": "2004-12-26", "title": "PURPLE'S", "venue": "愛知県体育館", "pref": "愛知県" },
   { "id": "0179", "date": "2004-12-27", "title": "PURPLE'S", "venue": "愛知県体育館", "pref": "愛知県" },
   { "id": "0180", "date": "2004-12-30", "title": "PURPLE'S", "venue": "東京体育館", "pref": "東京都" },
-  { "id": "0181", "date": "2004-12-31", "title": "PURPLE'S", "venue": "東京体育館", "pref": "東京都" }
+  { "id": "0181", "date": "2004-12-31", "title": "PURPLE'S", "venue": "東京体育館", "pref": "東京都" },
+  { "id": "0182", "date": "2005-05-07", "title": "SWITCH", "venue": "大宮ソニックシティ", "prefecture": "埼玉県" },
+  { "id": "0183", "date": "2005-05-08", "title": "SWITCH", "venue": "大宮ソニックシティ", "prefecture": "埼玉県" },
+  { "id": "0184", "date": "2005-05-10", "title": "SWITCH", "venue": "神戸国際会館こくさいホール", "prefecture": "兵庫県" },
+  { "id": "0185", "date": "2005-05-13", "title": "SWITCH", "venue": "大阪フェスティバルホール", "prefecture": "大阪府" },
+  { "id": "0186", "date": "2005-05-14", "title": "SWITCH", "venue": "大阪フェスティバルホール", "prefecture": "大阪府" },
+  { "id": "0187", "date": "2005-05-16", "title": "SWITCH", "venue": "滋賀県立芸術劇場びわ湖ホール", "prefecture": "滋賀県" },
+  { "id": "0188", "date": "2005-05-19", "title": "SWITCH", "venue": "熊本市民会館", "prefecture": "熊本県" },
+  { "id": "0189", "date": "2005-05-20", "title": "SWITCH", "venue": "長崎ブリックホール", "prefecture": "長崎県" },
+  { "id": "0190", "date": "2005-05-23", "title": "SWITCH", "venue": "福岡サンパレス", "prefecture": "福岡県" },
+  { "id": "0191", "date": "2005-05-24", "title": "SWITCH", "venue": "福岡サンパレス", "prefecture": "福岡県" },
+  { "id": "0192", "date": "2005-05-28", "title": "SWITCH", "venue": "長良川国際会議場", "prefecture": "岐阜県" },
+  { "id": "0193", "date": "2005-05-31", "title": "SWITCH", "venue": "三重県文化会館", "prefecture": "三重県" },
+  { "id": "0194", "date": "2005-06-02", "title": "SWITCH", "venue": "名古屋センチュリーホール", "prefecture": "愛知県" },
+  { "id": "0195", "date": "2005-06-03", "title": "SWITCH", "venue": "名古屋センチュリーホール", "prefecture": "愛知県" },
+  { "id": "0196", "date": "2005-06-05", "title": "SWITCH", "venue": "広島厚生年金会館", "prefecture": "広島県" },
+  { "id": "0197", "date": "2005-06-06", "title": "SWITCH", "venue": "広島厚生年金会館", "prefecture": "広島県" },
+  { "id": "0198", "date": "2005-06-08", "title": "SWITCH", "venue": "島根県民会館", "prefecture": "島根県" },
+  { "id": "0199", "date": "2005-06-11", "title": "SWITCH", "venue": "東京国際フォーラム・A", "prefecture": "東京都" },
+  { "id": "0200", "date": "2005-06-12", "title": "SWITCH", "venue": "東京国際フォーラム・A", "prefecture": "東京都" },
+  { "id": "0201", "date": "2005-06-19", "title": "SWITCH", "venue": "東京国際フォーラム・A", "prefecture": "東京都" },
+  { "id": "0202", "date": "2005-06-22", "title": "SWITCH", "venue": "静岡市民文化会館", "prefecture": "静岡県" },
+  { "id": "0203", "date": "2005-06-23", "title": "SWITCH", "venue": "静岡市民文化会館", "prefecture": "静岡県" },
+  { "id": "0204", "date": "2005-06-25", "title": "SWITCH", "venue": "和歌山市民会館", "prefecture": "和歌山県" },
+  { "id": "0205", "date": "2005-06-27", "title": "SWITCH", "venue": "倉敷市民会館", "prefecture": "岡山県" },
+  { "id": "0206", "date": "2005-06-28", "title": "SWITCH", "venue": "香川県県民ホール", "prefecture": "香川県" },
+  { "id": "0207", "date": "2005-06-30", "title": "SWITCH", "venue": "愛媛県県民文化会館", "prefecture": "愛媛県" },
+  { "id": "0208", "date": "2005-07-23", "title": "SWITCH", "venue": "宜野湾海浜公園野外劇場（ポルノグラフテー）", "prefecture": "沖縄県" },
+  { "id": "0209", "date": "2005-09-25", "title": "SWITCH", "venue": "山梨県立県民文化ホール", "prefecture": "山梨県" },
+  { "id": "0210", "date": "2005-09-28", "title": "SWITCH", "venue": "福井フェニックスプラザ", "prefecture": "福井県" },
+  { "id": "0211", "date": "2005-09-29", "title": "SWITCH", "venue": "石川厚生年金会館", "prefecture": "石川県" },
+  { "id": "0212", "date": "2005-10-01", "title": "SWITCH", "venue": "新潟県民会館", "prefecture": "新潟県" },
+  { "id": "0213", "date": "2005-10-03", "title": "SWITCH", "venue": "長野県松本文化会館", "prefecture": "長野県" },
+  { "id": "0214", "date": "2005-10-05", "title": "SWITCH", "venue": "茨城県立県民文化センター", "prefecture": "茨城県" },
+  { "id": "0215", "date": "2005-10-09", "title": "SWITCH", "venue": "山形県県民会館", "prefecture": "山形県" },
+  { "id": "0216", "date": "2005-10-11", "title": "SWITCH", "venue": "仙台サンプラザホール", "prefecture": "宮城県" },
+  { "id": "0217", "date": "2005-10-13", "title": "SWITCH", "venue": "岩手県民会館", "prefecture": "岩手県" },
+  { "id": "0218", "date": "2005-10-16", "title": "SWITCH", "venue": "群馬県民会館", "prefecture": "群馬県" },
+  { "id": "0219", "date": "2005-10-18", "title": "SWITCH", "venue": "郡山市民文化センター", "prefecture": "福島県" },
+  { "id": "0220", "date": "2005-10-20", "title": "SWITCH", "venue": "栃木県総合文化センター", "prefecture": "栃木県" },
+  { "id": "0221", "date": "2005-10-24", "title": "SWITCH", "venue": "函館市民会館", "prefecture": "北海道" },
+  { "id": "0222", "date": "2005-10-26", "title": "SWITCH", "venue": "北海道厚生年金会館", "prefecture": "北海道" },
+  { "id": "0223", "date": "2005-10-27", "title": "SWITCH", "venue": "北海道厚生年金会館", "prefecture": "北海道" },
+  { "id": "0224", "date": "2005-10-29", "title": "SWITCH", "venue": "札幌ペニーレーン24（SPECIAL LIVE HOUSE公演）", "prefecture": "北海道" },
+  { "id": "0225", "date": "2005-11-02", "title": "SWITCH", "venue": "秋田県民会館", "prefecture": "秋田県" },
+  { "id": "0226", "date": "2005-11-04", "title": "SWITCH", "venue": "青森市文化会館", "prefecture": "青森県" },
+  { "id": "0227", "date": "2005-11-09", "title": "SWITCH", "venue": "大阪フェスティバルホール ※追加公演", "prefecture": "大阪府" },
+  { "id": "0228", "date": "2005-11-12", "title": "SWITCH", "venue": "名古屋センチュリーホール", "prefecture": "愛知県" }
+
+  
+  
+  
+  
+  
+  
+  
 ]
 
 
