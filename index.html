@@ -146,7 +146,7 @@ header h1 {
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.7 (2026.01.23)</div>
+    <div class="version-date">v2.8 (2026.01.23)</div>
   </div>
 </header>
 
@@ -505,6 +505,7 @@ header h1 {
     renderMasterSongList();
   }
 
+
   function renderMasterSongList() {
     const area = document.getElementById('master-song-select-area');
     const query = document.getElementById('song-filter').value.toLowerCase();
@@ -513,17 +514,28 @@ header h1 {
       (s.title||"").toLowerCase().includes(query) || (s.ruby||"").toLowerCase().includes(query)
     ).sort((a,b) => (a.ruby||a.title).localeCompare(b.ruby||b.title, 'ja'));
 
+    let lastInitial = ""; // 直前の頭文字を記憶する変数
+
     area.innerHTML = filtered.map((s, i) => {
       const id = String(s.id);
       const idx = tempSelectedSongs.indexOf(id);
       
-      // 先頭の読み（インデックス）を取得。rubyがない場合はタイトルの先頭
-      const initial = (s.ruby || s.title || "？").substring(0, 1);
+      // 先頭の読み（インデックス）を取得
+      const currentInitial = (s.ruby || s.title || "？").substring(0, 1);
+      
+      // 文字が切り替わった時だけ表示し、それ以外は空文字にする
+      let displayInitial = "";
+      if (currentInitial !== lastInitial) {
+        displayInitial = currentInitial;
+        lastInitial = currentInitial; // 文字を更新
+      }
 
       return `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; margin-bottom:8px; background:${idx>-1?'#fff9f9':'#fff'}; cursor:pointer; border-radius:10px; border:1px solid ${idx>-1?'var(--primary)':'#eee'};" onclick="toggleSongSelection('${id}')">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; margin-bottom:5px; background:${idx>-1?'#fff9f9':'#fff'}; cursor:pointer; border-radius:8px; border:1px solid ${idx>-1?'var(--primary)':'#eee'};" onclick="toggleSongSelection('${id}')">
           <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-            <span class="song-initial">${initial}</span>
+            <div style="width:25px; text-align:center; flex-shrink:0;">
+              ${displayInitial ? `<span style="color:var(--primary); font-weight:bold; font-size:1rem;">${displayInitial}</span>` : ''}
+            </div>
             <span style="font-size:0.95rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</span>
           </div>
           <div class="selection-circle ${idx > -1 ? 'active' : ''}">
@@ -532,6 +544,7 @@ header h1 {
         </div>`;
     }).join('');
   }
+
 
 
 
