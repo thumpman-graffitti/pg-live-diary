@@ -115,7 +115,7 @@ header h1 {
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.4 (2026.01.23)</div>
+    <div class="version-date">v2.5 (2026.01.23)</div>
   </div>
 </header>
 
@@ -125,12 +125,12 @@ header h1 {
 </div>
 
 <div id="tab-my-log" class="tab-content">
-  <h3>マイ参戦履歴</h3>
+  <h3>参戦履歴</h3>
   <div id="my-history-list"></div>
 </div>
 
 <div id="tab-stats" class="tab-content">
-  <h3>マイ統計</h3>
+  <h3>統計情報</h3>
   <div id="stats-total-lives" class="stats-summary-header"></div>
 
   <h4>🎤 聴いた曲ランキング</h4>
@@ -394,11 +394,10 @@ header h1 {
       <div style="font-size:0.85em; margin-bottom:8px; font-weight:bold;">未聴曲 (${unheard.length})</div>
       <div class="unheard-grid">${unheard.map(s => `<div class="unheard-item">${s.title}</div>`).join('')}</div>`;
 
-
-
     // C. 年別
     const maxVal = Math.max(...Object.values(yearCounts), 1);
-    document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).map(year => {
+    // 修正：sort((a, b) => b - a) を追加して降順に
+    document.getElementById('stats-year-graph').innerHTML = Object.keys(yearCounts).sort((a, b) => b - a).map(year => {
       const val = yearCounts[year];
       if (val === 0 && year < 1999) return '';
       return `<div class="graph-row">
@@ -408,11 +407,16 @@ header h1 {
       </div>`;
     }).join('');
 
+
+
     // D. 都道府県ランキング
     const sortedPrefs = Object.keys(prefCounts).map(p => ({ name: p, ...prefCounts[p] }))
       .sort((a,b) => b.count - a.count);
 
     document.getElementById('stats-venue-ranking').innerHTML = sortedPrefs.map((item, idx) => {
+      // 追加：表示する前に日付の降順（新しい順）でソート
+      item.lives.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
       const hideClass = idx >= 10 ? 'hidden-rank-item venue-hidden' : '';
       return `
         <div class="stat-ranking-item ${hideClass}">
@@ -426,6 +430,7 @@ header h1 {
           </div>
         </div>`;
     }).join('');
+
     
     // ボタンの初期表示状態
     toggleRanking('song', false);
