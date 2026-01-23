@@ -115,7 +115,7 @@ header h1 {
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.5 (2026.01.23)</div>
+    <div class="version-date">v2.6 (2026.01.23)</div>
   </div>
 </header>
 
@@ -480,15 +480,22 @@ header h1 {
     const filtered = masterSongs.filter(s => (s.title||"").toLowerCase().includes(query) || (s.ruby||"").toLowerCase().includes(query))
       .sort((a,b) => (a.ruby||a.title).localeCompare(b.ruby||b.title, 'ja'));
 
-    area.innerHTML = filtered.map(s => {
+    area.innerHTML = filtered.map((s, i) => {
       const id = String(s.id);
       const idx = tempSelectedSongs.indexOf(id);
-      return `<div class="card" style="display:flex; justify-content:space-between; padding:10px; margin-bottom:5px; background:${idx>-1?'#fff0f0':'#fff'}" onclick="toggleSongSelection('${id}')">
-        <span>${s.title}</span>
-        <span>${idx > -1 ? `<b>[${idx+1}]</b>` : '○'}</span>
-      </div>`;
+      return `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:5px; background:${idx>-1?'#fff0f0':'#fff'}; cursor:pointer;" onclick="toggleSongSelection('${id}')">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="color:#888; font-size:0.75rem; width:25px; text-align:right;">${i+1}</span>
+            <span style="font-size:0.9rem;">${s.title}</span>
+          </div>
+          <div style="font-size:0.9rem; font-weight:bold; color:var(--primary); min-width:30px; text-align:right;">
+            ${idx > -1 ? `[${idx+1}]` : '<span style="color:#ccc;">＋</span>'}
+          </div>
+        </div>`;
     }).join('');
   }
+
 
   function toggleSongSelection(id) {
     const idx = tempSelectedSongs.indexOf(id);
