@@ -226,7 +226,13 @@
   { "id": "0225", "date": "2005-11-02", "title": "SWITCH", "venue": "秋田県民会館", "prefecture": "秋田県" },
   { "id": "0226", "date": "2005-11-04", "title": "SWITCH", "venue": "青森市文化会館", "prefecture": "青森県" },
   { "id": "0227", "date": "2005-11-09", "title": "SWITCH", "venue": "大阪フェスティバルホール ※追加公演", "prefecture": "大阪府" },
-  { "id": "0228", "date": "2005-11-12", "title": "SWITCH", "venue": "名古屋センチュリーホール", "prefecture": "愛知県" }
+  { "id": "0228", "date": "2005-11-12", "title": "SWITCH", "venue": "名古屋センチュリーホール", "prefecture": "愛知県" },
+  { "id": "0229", "date": "2005-12-13", "title": "SWITCH", "venue": "日本武道館 （SWITCH FINAL）", "prefecture": "東京都" },
+  { "id": "0230", "date": "2005-12-14", "title": "SWITCH", "venue": "日本武道館 （SWITCH FINAL）", "prefecture": "東京都" },
+  { "id": "0231", "date": "2005-12-16", "title": "SWITCH", "venue": "日本武道館 （SWITCH FINAL）", "prefecture": "東京都" },
+  { "id": "0232", "date": "2005-12-17", "title": "SWITCH", "venue": "日本武道館 （SWITCH FINAL）", "prefecture": "東京都" },
+  { "id": "0233", "date": "2005-12-18", "title": "SWITCH", "venue": "日本武道館 （SWITCH FINAL）", "prefecture": "東京都" }
+]
 
   
   
@@ -235,7 +241,6 @@
   
   
   
-]
 
 
   
