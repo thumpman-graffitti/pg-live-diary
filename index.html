@@ -146,7 +146,7 @@ header h1 {
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.8 (2026.01.23)</div>
+    <div class="version-date">v2.9 (2026.01.23)</div>
   </div>
 </header>
 
@@ -405,6 +405,8 @@ header h1 {
         </div>`;
     }).join('');
 
+// --- renderMyStats関数の中の「B. 未聴曲」の部分を以下に差し替え ---
+
     // B. 未聴曲
     const heardIds = new Set(Object.keys(songCounts).map(String));
     const unheard = masterSongs
@@ -417,9 +419,10 @@ header h1 {
         if (isUnreleasedA !== isUnreleasedB) {
           return isUnreleasedA ? 1 : -1;
         }
-        // 優先度2: idの昇順
-        return Number(a.id) - Number(b.id);
+        // 修正ポイント：parseFloat を使用して小数点ID（0125.1など）を正しくソートする
+        return parseFloat(a.id) - parseFloat(b.id);
       });
+
 
     document.getElementById('stats-unheard-list').innerHTML = `
       <div style="font-size:0.85em; margin-bottom:8px; font-weight:bold;">未聴曲 (${unheard.length})</div>
