@@ -108,14 +108,45 @@ header h1 {
     .setlist-collapse.open { display: block; }
     .btn-add { background: #eee; color: #666; }
     .btn-del { background: var(--primary); color: white; }
-  </style>
+/* --- 丸付き数字とおしゃれなインデックスのスタイル --- */
+.selection-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #ccc;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.selection-circle.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(230, 0, 18, 0.3);
+}
+
+.song-initial {
+  color: #bbb;
+  font-size: 0.75rem;
+  width: 22px;
+  font-weight: bold;
+  text-align: center;
+  font-family: "Hiragino Sans", "Meiryo", sans-serif;
+}    
+        </style>
 </head>
 <body>
 
 <header>
   <div class="header-container">
     <h1>PG LIVE DIARY🍊</h1>
-    <div class="version-date">v2.6 (2026.01.23)</div>
+    <div class="version-date">v2.7 (2026.01.23)</div>
   </div>
 </header>
 
@@ -477,24 +508,31 @@ header h1 {
   function renderMasterSongList() {
     const area = document.getElementById('master-song-select-area');
     const query = document.getElementById('song-filter').value.toLowerCase();
-    const filtered = masterSongs.filter(s => (s.title||"").toLowerCase().includes(query) || (s.ruby||"").toLowerCase().includes(query))
-      .sort((a,b) => (a.ruby||a.title).localeCompare(b.ruby||b.title, 'ja'));
+    
+    const filtered = masterSongs.filter(s => 
+      (s.title||"").toLowerCase().includes(query) || (s.ruby||"").toLowerCase().includes(query)
+    ).sort((a,b) => (a.ruby||a.title).localeCompare(b.ruby||b.title, 'ja'));
 
     area.innerHTML = filtered.map((s, i) => {
       const id = String(s.id);
       const idx = tempSelectedSongs.indexOf(id);
+      
+      // 先頭の読み（インデックス）を取得。rubyがない場合はタイトルの先頭
+      const initial = (s.ruby || s.title || "？").substring(0, 1);
+
       return `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:5px; background:${idx>-1?'#fff0f0':'#fff'}; cursor:pointer;" onclick="toggleSongSelection('${id}')">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="color:#888; font-size:0.75rem; width:25px; text-align:right;">${i+1}</span>
-            <span style="font-size:0.9rem;">${s.title}</span>
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; margin-bottom:8px; background:${idx>-1?'#fff9f9':'#fff'}; cursor:pointer; border-radius:10px; border:1px solid ${idx>-1?'var(--primary)':'#eee'};" onclick="toggleSongSelection('${id}')">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <span class="song-initial">${initial}</span>
+            <span style="font-size:0.95rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</span>
           </div>
-          <div style="font-size:0.9rem; font-weight:bold; color:var(--primary); min-width:30px; text-align:right;">
-            ${idx > -1 ? `[${idx+1}]` : '<span style="color:#ccc;">＋</span>'}
+          <div class="selection-circle ${idx > -1 ? 'active' : ''}">
+            ${idx > -1 ? idx + 1 : '＋'}
           </div>
         </div>`;
     }).join('');
   }
+
 
 
   function toggleSongSelection(id) {
