@@ -198,6 +198,15 @@ header h1 {
     margin-top: 20px;
 }
 
+.disclaimer-footer {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #999;
+  padding: 10px 0;
+  background: transparent;
+  width: 100%;
+}
+
         </style>
 </head>
 <body>
@@ -241,7 +250,7 @@ header h1 {
 </div>
 
 <div id="tab-settings" class="tab-content">
-  <h3>設定</h3>
+  <h3>管理</h3>
   <div class="card">
     <div class="setting-group">
       <div class="setting-label">📥 データのバックアップ</div>
@@ -330,11 +339,13 @@ header h1 {
   </div>
 </div>
 
+<div class="disclaimer-footer">※ 本アプリは公式アプリではありません。</div>
+
 <nav>
   <button onclick="showTab('search')" id="nav-search" class="active">登録</button>
   <button onclick="showTab('my-log')" id="nav-my-log">履歴</button>
   <button onclick="showTab('stats')" id="nav-stats">統計</button>
-  <button onclick="showTab('settings')" id="nav-settings">設定</button>
+  <button onclick="showTab('settings')" id="nav-settings">管理</button>
 </nav>
 
 <script>
