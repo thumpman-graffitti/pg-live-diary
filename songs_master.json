@@ -276,8 +276,10 @@
   { "id": "274", "title": "ミュージック・サワー", "type": "z", "album": "未発売", "ruby": "みゅーしっく・さわー" },
   { "id": "275", "title": "POISON", "type": "z", "album": "未発売", "ruby": "POISON" },
   { "id": "276", "title": "マンピーのG★SPOT", "type": "z", "album": "未発売", "ruby": "まんひーのG★SPOT" },
-  { "id": "277", "title": "Sweet Home Chicago", "type": "z", "album": "未発売", "ruby": "Sweet Home Chicago" }
-
-
+  { "id": "277", "title": "Sweet Home Chicago", "type": "z", "album": "未発売", "ruby": "Sweet Home Chicago" },
+  { "id": "278", "title": "峠の鬼", "type": "z", "album": "種", "ruby": "とうけのおに" },
+  { "id": "279", "title": "土竜", "type": "z", "album": "種", "ruby": "もくら" },
+  { "id": "280", "title": "SETOUCHI BOYS", "type": "z", "album": "種", "ruby": "SETOUCHI BOYS" },
+  { "id": "281", "title": "デッサン#4", "type": "z", "album": "種", "ruby": "てっさん#4" }
 
 ]
